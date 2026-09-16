@@ -31,6 +31,7 @@ export interface Player {
   overall: number // S(90+), A(80+), B(70+), C(60+), D(<60)
   traits: string[]
   isForeign?: boolean
+  isRookie?: boolean
   isInjured?: boolean
   injuryWeeks?: number
 }
@@ -81,14 +82,46 @@ export interface EventOption {
   chemistryDelta?: number
   farmDelta?: number
   overallDelta?: number
+  requiredBudget?: number
 }
 
 export interface SeasonEvent {
   id: string
   title: string
   description: string
-  category: '부상' | '갈등' | '유망주' | '외국인' | '트레이드' | '구단주'
+  category: '부상' | '갈등' | '유망주' | '외국인' | '트레이드' | '구단주' | '팬덤' | '징계'
   options: EventOption[]
+}
+
+export interface RookieProspect {
+  id: string
+  name: string
+  position: Position
+  age: number
+  school: string
+  scoutSummary: string
+  signingBonus: number // 억원
+  isPitcher: boolean
+  pitcherStats?: PitcherStats
+  batterStats?: BatterStats
+  overall: number
+  potential: 'S' | 'A+' | 'A' | 'B'
+  traits: string[]
+}
+
+export interface ForeignCandidate {
+  id: string
+  name: string
+  position: Position
+  age: number
+  salary: number // 억원
+  previousTeam: string
+  scoutSummary: string
+  isPitcher: boolean
+  pitcherStats?: PitcherStats
+  batterStats?: BatterStats
+  overall: number
+  traits: string[]
 }
 
 export interface PostseasonMatch {
@@ -117,8 +150,12 @@ export interface SeasonSummary {
 
 export type GamePhase =
   | 'TEAM_SELECT'
+  | 'STOVE_LEAGUE'
   | 'PRESEASON'
-  | 'SEASON_EVENTS'
+  | 'FIRST_HALF_EVENTS'
+  | 'CALLUP_DECISION'
+  | 'ROOKIE_DRAFT'
+  | 'SECOND_HALF_EVENTS'
   | 'PENNANT_RACE'
   | 'POSTSEASON'
   | 'SEASON_SETTLEMENT'

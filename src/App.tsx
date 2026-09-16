@@ -1,5 +1,15 @@
 import { useState, useEffect } from 'react'
-import { GamePhase, Team, Player, EnvironmentCard, EventOption, StandingsRecord, SeasonSummary } from './types'
+import {
+  GamePhase,
+  Team,
+  Player,
+  EnvironmentCard,
+  EventOption,
+  StandingsRecord,
+  SeasonSummary,
+  ForeignCandidate,
+  RookieProspect
+} from './types'
 import { KBO_TEAMS } from './data/teams'
 import { INITIAL_PLAYERS } from './data/players'
 import { ENVIRONMENT_CARDS } from './data/environmentCards'
@@ -7,12 +17,22 @@ import { IN_SEASON_EVENTS } from './data/events'
 import { PRNG } from './engine/prng'
 import { simulatePennantRace } from './engine/simulation'
 import { simulatePostseason, SeriesResult, TacticChoice } from './engine/postseason'
+import {
+  generateForeignCandidates,
+  generateRookieProspects,
+  convertForeignToPlayer,
+  convertRookieToPlayer
+} from './engine/player_generator'
+
 import { Header } from './components/Header'
 import { RosterModal } from './components/RosterModal'
 import { CompanionPanel } from './components/CompanionPanel'
 import { TeamSelectView } from './components/TeamSelectView'
+import { StoveLeagueView } from './components/StoveLeagueView'
 import { PreseasonView } from './components/PreseasonView'
 import { SeasonEventView } from './components/SeasonEventView'
+import { CallupView } from './components/CallupView'
+import { DraftView } from './components/DraftView'
 import { PennantRaceView } from './components/PennantRaceView'
 import { PostseasonView } from './components/PostseasonView'
 import { SettlementView } from './components/SettlementView'
@@ -25,7 +45,7 @@ export default function App() {
   const maxSeasons = 7
 
   const [teams, setTeams] = useState<Record<string, Team>>(KBO_TEAMS)
-  const [players] = useState<Player[]>(INITIAL_PLAYERS)
+  const [players, setPlayers] = useState<Player[]>(INITIAL_PLAYERS)
   const [userTeamId, setUserTeamId] = useState<string>('kia')
   const [previewTeamId, setPreviewTeamId] = useState<string>('kia')
   const [theme, setTheme] = useState<'dark' | 'light'>('dark')
@@ -33,9 +53,12 @@ export default function App() {
   const [activeEnv, setActiveEnv] = useState<EnvironmentCard>(ENVIRONMENT_CARDS[0])
   const [modifierDelta, setModifierDelta] = useState<number>(0)
 
+  // 스토브리그 & 드래프트 풀
+  const [foreignCandidates, setForeignCandidates] = useState<ForeignCandidate[]>([])
+  const [rookieProspects, setRookieProspects] = useState<RookieProspect[]>([])
+
   // 시즌 돌발 이벤트
   const [inSeasonEvents, setInSeasonEvents] = useState(IN_SEASON_EVENTS)
-  const [eventStep, setEventStep] = useState<number>(1) // 1 for first event (결정 2), 2 for second event (결정 3)
 
   // 시뮬레이션 결과
   const [standings, setStandings] = useState<StandingsRecord[]>([])
@@ -57,7 +80,10 @@ export default function App() {
   // PRNG 인스턴스
   const getPrng = (extra = 0) => new PRNG(`${seed}_s${season}_${extra}`)
 
-  // 1. 구단 선택 후 게임 시작
+  // 유저 팀 가져오기
+  const userTeam = teams[userTeamId] || KBO_TEAMS.kia
+
+  // 1. 구단 선택 후 스토브리그로 진입
   const handleSelectTeam = (teamId: string, customSeed: string) => {
     setUserTeamId(teamId)
     setSeed(customSeed)
@@ -66,29 +92,35 @@ export default function App() {
     setIsFired(false)
     setFiredReason('')
     setTeams(JSON.parse(JSON.stringify(KBO_TEAMS)))
+    setPlayers(JSON.parse(JSON.stringify(INITIAL_PLAYERS)))
 
-    // 시즌 1 환경 카드 및 이벤트 뽑기
     initSeason(1, customSeed)
-    setPhase('PRESEASON')
+    setPhase('STOVE_LEAGUE')
   }
 
   // 시즌 초기화 헬퍼
   const initSeason = (seasonNum: number, currentSeed: string) => {
     const prng = new PRNG(`${currentSeed}_season_${seasonNum}`)
+
     // 환경 카드 추첨
     const envIdx = prng.nextInt(0, ENVIRONMENT_CARDS.length - 1)
     setActiveEnv(ENVIRONMENT_CARDS[envIdx])
 
-    // 시즌 중 이벤트 2개 추첨
+    // 스토브리그 외국인 후보 3인 생성
+    const foreigners = generateForeignCandidates(prng, seasonNum)
+    setForeignCandidates(foreigners)
+
+    // 신인 드래프트 3인 생성
+    const rookies = generateRookieProspects(prng, seasonNum)
+    setRookieProspects(rookies)
+
+    // 전반기 / 후반기 이벤트 2개 추첨
     const pickedEvents = prng.sample(IN_SEASON_EVENTS, 2)
     setInSeasonEvents(pickedEvents)
-    setEventStep(1)
+
     setModifierDelta(0)
     setPostseasonResults(undefined)
   }
-
-  // 유저 팀 가져오기
-  const userTeam = teams[userTeamId] || KBO_TEAMS.kia
 
   // 리소스 변경 적용 헬퍼
   const applyOptionDeltas = (opt: EventOption) => {
@@ -109,27 +141,81 @@ export default function App() {
     }
   }
 
-  // 2. 프리시즌 선택 확정 -> 첫 번째 시즌 이벤트로
+  // [Phase 1] 스토브리그: 선수 방출
+  const handleReleasePlayer = (playerId: string, refundBudget: number) => {
+    setPlayers(prev => prev.filter(p => p.id !== playerId))
+    setTeams(prev => ({
+      ...prev,
+      [userTeamId]: {
+        ...prev[userTeamId],
+        budget: prev[userTeamId].budget + refundBudget
+      }
+    }))
+  }
+
+  // [Phase 1] 스토브리그: 외국인 선수 계약 (로스터 실제 교체)
+  const handleSignForeign = (candidate: ForeignCandidate, replacePlayerId: string) => {
+    const newPlayer = convertForeignToPlayer(candidate, userTeamId)
+    setPlayers(prev => prev.map(p => p.id === replacePlayerId ? newPlayer : p))
+    setTeams(prev => ({
+      ...prev,
+      [userTeamId]: {
+        ...prev[userTeamId],
+        budget: prev[userTeamId].budget - candidate.salary,
+        fanSupport: Math.min(100, prev[userTeamId].fanSupport + 6)
+      }
+    }))
+  }
+
+  // [Phase 1 -> 2] 스토브리그 완료 -> 스프링캠프(프리시즌)
+  const handleProceedFromStoveLeague = () => {
+    setPhase('PRESEASON')
+  }
+
+  // [Phase 2 -> 3] 프리시즌 완료 -> 전반기 돌발 이벤트
   const handleConfirmPreseason = (option: EventOption) => {
     applyOptionDeltas(option)
-    setPhase('SEASON_EVENTS')
+    setPhase('FIRST_HALF_EVENTS')
   }
 
-  // 3. 시즌 이벤트 선택
-  const handleConfirmEvent = (option: EventOption) => {
+  // [Phase 3 -> 4] 전반기 이벤트 완료 -> 1군 강등 / 2군 콜업 결단
+  const handleConfirmFirstHalfEvent = (option: EventOption) => {
     applyOptionDeltas(option)
-    if (eventStep === 1) {
-      setEventStep(2) // 두 번째 이벤트로
-    } else {
-      // 3개 결정 완료 -> 144경기 페넌트레이스 시뮬레이션
-      const prng = getPrng(888)
-      const res = simulatePennantRace(teams, players, prng, activeEnv, modifierDelta, userTeamId)
-      setStandings(res)
-      setPhase('PENNANT_RACE')
-    }
+    setPhase('CALLUP_DECISION')
   }
 
-  // 4. 페넌트레이스 종료 후 진행 (5위 이내면 포스트시즌, 아니면 결산)
+  // [Phase 4 -> 5] 콜업 결단 완료 -> 신인 1차 드래프트
+  const handleConfirmCallup = (option: EventOption) => {
+    applyOptionDeltas(option)
+    setPhase('ROOKIE_DRAFT')
+  }
+
+  // [Phase 5 -> 6] 신인 1차 지명 완료 -> 후반기 돌발 이벤트
+  const handleDraftRookie = (prospect: RookieProspect) => {
+    const newRookie = convertRookieToPlayer(prospect, userTeamId)
+    setPlayers(prev => [...prev, newRookie])
+    setTeams(prev => ({
+      ...prev,
+      [userTeamId]: {
+        ...prev[userTeamId],
+        budget: prev[userTeamId].budget - prospect.signingBonus,
+        farmSystem: Math.min(100, prev[userTeamId].farmSystem + 12),
+        fanSupport: Math.min(100, prev[userTeamId].fanSupport + 5)
+      }
+    }))
+    setPhase('SECOND_HALF_EVENTS')
+  }
+
+  // [Phase 6 -> 7] 후반기 이벤트 완료 -> 144경기 페넌트레이스 시뮬레이션
+  const handleConfirmSecondHalfEvent = (option: EventOption) => {
+    applyOptionDeltas(option)
+    const prng = getPrng(888)
+    const res = simulatePennantRace(teams, players, prng, activeEnv, modifierDelta, userTeamId)
+    setStandings(res)
+    setPhase('PENNANT_RACE')
+  }
+
+  // [Phase 7 -> 8] 페넌트레이스 종료 후 진행 (5위 이내면 포스트시즌, 아니면 결산)
   const handlePennantProceed = () => {
     const userStanding = standings.find(s => s.teamId === userTeamId)
     if (userStanding && userStanding.rank <= 5) {
@@ -139,14 +225,14 @@ export default function App() {
     }
   }
 
-  // 5. 포스트시즌 시뮬레이션 실행
+  // [Phase 8] 포스트시즌 시뮬레이션 실행
   const handleRunPostseason = (tactic: TacticChoice) => {
     const prng = getPrng(999)
     const res = simulatePostseason(standings, teams, prng, userTeamId, tactic)
     setPostseasonResults(res)
   }
 
-  // 6. 포스트시즌 후 결산으로 이동
+  // [Phase 8 -> 9] 포스트시즌 후 결산으로 이동
   const handlePostseasonSettlement = () => {
     const finalResult = postseasonResults?.userFinalResult || '가을야구 마감'
     processSeasonSettlement(finalResult)
@@ -162,16 +248,16 @@ export default function App() {
     const winRate = userStanding?.winRate || 0
 
     // 구단주 및 팬 평가 변화
-    let trustDelta = rank <= 5 ? 10 : -15
-    let fanDelta = rank <= 5 ? 12 : -8
+    let trustDelta = rank <= 5 ? 12 : -15
+    let fanDelta = rank <= 5 ? 15 : -10
     if (postseasonResult.includes('우승!')) {
-      trustDelta += 15
-      fanDelta += 20
+      trustDelta += 18
+      fanDelta += 25
     }
 
     const newOwnerTrust = Math.min(100, Math.max(0, userTeam.ownerTrust + trustDelta))
     const newFanSupport = Math.min(100, Math.max(0, userTeam.fanSupport + fanDelta))
-    const newBudget = userTeam.budget + 40 // 차기 시즌 운영비 지급
+    const newBudget = userTeam.budget + 45 // 차기 시즌 운영비 지급
 
     setTeams(prev => ({
       ...prev,
@@ -218,20 +304,20 @@ export default function App() {
     setPhase('SEASON_SETTLEMENT')
   }
 
-  // 7. 다음 시즌으로 진입
+  // [Phase 9 -> 차기 시즌 스토브리그]
   const handleNextSeason = () => {
     const nextSeason = season + 1
     setSeason(nextSeason)
     initSeason(nextSeason, seed)
-    setPhase('PRESEASON')
+    setPhase('STOVE_LEAGUE')
   }
 
-  // 8. 최종 엔딩 화면으로 진입
+  // 최종 엔딩 화면으로 진입
   const handleFinalEnding = () => {
     setPhase('GAME_OVER')
   }
 
-  // 9. 재시작
+  // 재시작
   const handleRestart = () => {
     setPhase('TEAM_SELECT')
   }
@@ -263,10 +349,8 @@ export default function App() {
     <div className={`min-h-screen ${theme === 'dark' ? 'dark bg-black text-neutral-100' : 'light bg-[#f5f5f7] text-[#1d1d1f]'} flex flex-col items-center py-2 sm:py-6 px-2 sm:px-4 font-sans selection:bg-neutral-500/30 transition-colors duration-200`}>
       {/* 상단 글로벌 애플 스타일 내비게이션 바 */}
       <nav className="w-full max-w-7xl px-3 py-2.5 mb-4 flex items-center justify-between border-b border-black/[0.08] dark:border-white/[0.06]">
-        {/* 1. 애플 스타일 KBO GM 로고 & 워드마크 */}
         <div className="flex items-center gap-3">
           <div className="w-9 h-9 rounded-2xl bg-neutral-200/70 dark:bg-white/[0.08] border border-neutral-300/80 dark:border-white/15 flex items-center justify-center shadow-sm backdrop-blur transition-transform hover:scale-105">
-            {/* Apple Precision Minimalist Baseball Stitches Emblem */}
             <svg className="w-5 h-5 text-neutral-900 dark:text-white" viewBox="0 0 24 24" fill="none">
               <circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="1.8" />
               <path d="M7 4.5C8.8 6.5 9.8 9.1 9.8 12C9.8 14.9 8.8 17.5 7 19.5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
@@ -290,7 +374,7 @@ export default function App() {
           </div>
         </div>
 
-        {/* 2. 다크 모드 / 라이트 모드 전환 스위치 */}
+        {/* 다크 / 라이트 모드 전환 스위치 */}
         <div className="flex items-center bg-neutral-200/80 dark:bg-white/[0.06] p-0.5 rounded-full border border-neutral-300/80 dark:border-white/10 text-xs">
           <button
             onClick={() => setTheme('dark')}
@@ -323,12 +407,11 @@ export default function App() {
         </div>
       </nav>
 
-      {/* 3. 메인 레이아웃: 모바일은 1장 보기, 태블릿/데스크톱은 2장 보기 완전 자동 반응형 */}
+      {/* 메인 레이아웃 */}
       <div className="w-full max-w-7xl">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-          {/* 좌측 패널: 메인 게임 플로우 */}
+          {/* 좌측 패널 */}
           <main className="col-span-1 lg:col-span-7 xl:col-span-7 flex flex-col min-h-[85vh]">
-            {/* 상단 헤더 (구단 선택 및 엔딩 화면 제외) */}
             {phase !== 'TEAM_SELECT' && phase !== 'GAME_OVER' && (
               <Header
                 season={season}
@@ -338,7 +421,7 @@ export default function App() {
               />
             )}
 
-            {/* 뷰 스위처 */}
+            {/* 1. 구단 선택 */}
             {phase === 'TEAM_SELECT' && (
               <TeamSelectView
                 onSelectTeam={handleSelectTeam}
@@ -346,22 +429,66 @@ export default function App() {
               />
             )}
 
+            {/* 2. 스토브리그 (선수단 정리 & 외인 영입) */}
+            {phase === 'STOVE_LEAGUE' && (
+              <StoveLeagueView
+                team={userTeam}
+                players={players}
+                candidates={foreignCandidates}
+                onReleasePlayer={handleReleasePlayer}
+                onSignForeign={handleSignForeign}
+                onProceed={handleProceedFromStoveLeague}
+              />
+            )}
+
+            {/* 3. 스프링캠프 (프리시즌 기조) */}
             {phase === 'PRESEASON' && (
               <PreseasonView
                 season={season}
                 environment={activeEnv}
+                team={userTeam}
                 onConfirmChoice={handleConfirmPreseason}
               />
             )}
 
-            {phase === 'SEASON_EVENTS' && (
+            {/* 4. 전반기 돌발 이벤트 */}
+            {phase === 'FIRST_HALF_EVENTS' && (
               <SeasonEventView
-                eventNumber={eventStep + 1}
-                event={inSeasonEvents[eventStep - 1]}
-                onConfirmChoice={handleConfirmEvent}
+                phaseTitle="전반기 레이스"
+                event={inSeasonEvents[0]}
+                team={userTeam}
+                onConfirmChoice={handleConfirmFirstHalfEvent}
               />
             )}
 
+            {/* 5. 1군 강등 / 2군 콜업 결단 */}
+            {phase === 'CALLUP_DECISION' && (
+              <CallupView
+                team={userTeam}
+                onConfirmCallup={handleConfirmCallup}
+              />
+            )}
+
+            {/* 6. 신인 1차 지명 드래프트 */}
+            {phase === 'ROOKIE_DRAFT' && (
+              <DraftView
+                team={userTeam}
+                prospects={rookieProspects}
+                onDraftRookie={handleDraftRookie}
+              />
+            )}
+
+            {/* 7. 후반기 승부처 돌발 이벤트 */}
+            {phase === 'SECOND_HALF_EVENTS' && (
+              <SeasonEventView
+                phaseTitle="후반기 승부처"
+                event={inSeasonEvents[1]}
+                team={userTeam}
+                onConfirmChoice={handleConfirmSecondHalfEvent}
+              />
+            )}
+
+            {/* 8. 144경기 페넌트레이스 결과 */}
             {phase === 'PENNANT_RACE' && (
               <PennantRaceView
                 standings={standings}
@@ -370,6 +497,7 @@ export default function App() {
               />
             )}
 
+            {/* 9. 포스트시즌 */}
             {phase === 'POSTSEASON' && (
               <PostseasonView
                 userTeam={userTeam}
@@ -379,6 +507,7 @@ export default function App() {
               />
             )}
 
+            {/* 10. 시즌 결산 */}
             {phase === 'SEASON_SETTLEMENT' && latestSummary && (
               <SettlementView
                 season={season}
@@ -392,6 +521,7 @@ export default function App() {
               />
             )}
 
+            {/* 11. 최종 커리어 엔딩 */}
             {phase === 'GAME_OVER' && (
               <EndingView
                 team={userTeam}
@@ -404,7 +534,7 @@ export default function App() {
             )}
           </main>
 
-          {/* 우측 패널: 태블릿 & 데스크톱 컴패니언 보드 (모바일 화면에서는 자동 숨김) */}
+          {/* 우측 패널: 데스크톱 컴패니언 보드 (실시간 로스터 반영) */}
           <aside className="hidden lg:block lg:col-span-5 xl:col-span-5 sticky top-6 max-h-[calc(100vh-4rem)] flex flex-col">
             <CompanionPanel
               team={activeCompanionTeam}

@@ -30,6 +30,11 @@ export class PRNG {
     return Math.floor(this.next() * (max - min + 1)) + min
   }
 
+  // 배열에서 1개 무작위 선택
+  choice<T>(array: T[]): T {
+    return array[this.nextInt(0, array.length - 1)]
+  }
+
   // 배열에서 무작위 n개 선택 (비복원 추출)
   sample<T>(array: T[], count = 1): T[] {
     const copy = [...array]
