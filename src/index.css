@@ -7,6 +7,8 @@
     @apply antialiased selection:bg-neutral-500/30;
     font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Helvetica Neue", Arial, sans-serif;
     letter-spacing: -0.015em;
+    word-break: keep-all;
+    overflow-wrap: break-word;
   }
 }
 
