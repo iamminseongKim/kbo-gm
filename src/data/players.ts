@@ -13,6 +13,7 @@ export const INITIAL_PLAYERS: Player[] = [
     salary: 16,
     contractYears: 1,
     isPitcher: true,
+    isForeign: true,
     overall: 93,
     traits: ['특급 외인 에이스', '마구 스위퍼', '빅게임 피처'],
     pitcherStats: { stuff: 95, control: 92, breaking: 97, clutch: 92, stamina: 90 }
@@ -26,6 +27,7 @@ export const INITIAL_PLAYERS: Player[] = [
     salary: 12,
     contractYears: 1,
     isPitcher: true,
+    isForeign: true,
     overall: 89,
     traits: ['2026 신규 외인', '강속구 투수'],
     pitcherStats: { stuff: 92, control: 86, breaking: 87, clutch: 85, stamina: 88 }
@@ -91,9 +93,25 @@ export const INITIAL_PLAYERS: Player[] = [
     salary: 13,
     contractYears: 1,
     isPitcher: false,
+    isForeign: true,
     overall: 91,
     traits: ['2026 신규 외인 타자', '중장거리 슬러거', '호타준족'],
     batterStats: { contact: 89, power: 92, eye: 86, speed: 88, defense: 87, stamina: 90 }
+  },
+  {
+    id: 'kia_sato',
+    name: '사토',
+    teamId: 'kia',
+    position: 'RP',
+    age: 29,
+    salary: 8,
+    contractYears: 1,
+    isPitcher: true,
+    isForeign: true,
+    isAsianQuota: true,
+    overall: 87,
+    traits: ['2026 아시아쿼터 필승조', '152km 포크볼'],
+    pitcherStats: { stuff: 90, control: 89, breaking: 91, clutch: 86, stamina: 84 }
   },
   {
     id: 'kia_kim_sunbin',
@@ -160,6 +178,7 @@ export const INITIAL_PLAYERS: Player[] = [
     salary: 18,
     contractYears: 1,
     isPitcher: true,
+    isForeign: true,
     overall: 94,
     traits: ['2026 라이온즈 새 에이스', 'QS 제조기', '땅볼 유도'],
     pitcherStats: { stuff: 92, control: 95, breaking: 93, clutch: 93, stamina: 97 }
@@ -173,6 +192,7 @@ export const INITIAL_PLAYERS: Player[] = [
     salary: 17,
     contractYears: 1,
     isPitcher: true,
+    isForeign: true,
     overall: 92,
     traits: ['2026 특급 외인', '스위퍼 장인', '탈삼진 머신'],
     pitcherStats: { stuff: 94, control: 91, breaking: 95, clutch: 89, stamina: 91 }
@@ -225,9 +245,25 @@ export const INITIAL_PLAYERS: Player[] = [
     salary: 15,
     contractYears: 1,
     isPitcher: false,
+    isForeign: true,
     overall: 92,
     traits: ['라팍 맞춤형 거포', '가을의 영웅', '괴력 슬러거'],
     batterStats: { contact: 85, power: 97, eye: 86, speed: 60, defense: 85, stamina: 88 }
+  },
+  {
+    id: 'samsung_kaneko',
+    name: '카네코',
+    teamId: 'samsung',
+    position: '2B',
+    age: 28,
+    salary: 7,
+    contractYears: 1,
+    isPitcher: false,
+    isForeign: true,
+    isAsianQuota: true,
+    overall: 86,
+    traits: ['2026 아시아쿼터 내야수', '명품 그물망 수비', '작전수행'],
+    batterStats: { contact: 88, power: 74, eye: 88, speed: 85, defense: 92, stamina: 88 }
   },
   {
     id: 'samsung_koo_jawook',
@@ -294,6 +330,7 @@ export const INITIAL_PLAYERS: Player[] = [
     salary: 15,
     contractYears: 1,
     isPitcher: true,
+    isForeign: true,
     overall: 91,
     traits: ['2026 잠실 선발', '정교한 제구', '빅리그 경력'],
     pitcherStats: { stuff: 90, control: 93, breaking: 91, clutch: 89, stamina: 91 }
@@ -307,6 +344,7 @@ export const INITIAL_PLAYERS: Player[] = [
     salary: 14,
     contractYears: 1,
     isPitcher: true,
+    isForeign: true,
     overall: 89,
     traits: ['베테랑 메이저리거', '다양한 구종', '경기 운영 노련미'],
     pitcherStats: { stuff: 87, control: 94, breaking: 92, clutch: 92, stamina: 86 }
@@ -359,9 +397,25 @@ export const INITIAL_PLAYERS: Player[] = [
     salary: 18,
     contractYears: 1,
     isPitcher: false,
+    isForeign: true,
     overall: 94,
     traits: ['트윈스 역대 최고 외인', '타점왕', '해결사', '복덩이'],
     batterStats: { contact: 93, power: 95, eye: 90, speed: 78, defense: 90, stamina: 92 }
+  },
+  {
+    id: 'lg_chen',
+    name: '첸관웨이',
+    teamId: 'lg',
+    position: 'RP',
+    age: 28,
+    salary: 7,
+    contractYears: 1,
+    isPitcher: true,
+    isForeign: true,
+    isAsianQuota: true,
+    overall: 86,
+    traits: ['2026 아시아쿼터 불펜', '대만 국대 마무리', '강력한 직구'],
+    pitcherStats: { stuff: 91, control: 86, breaking: 88, clutch: 88, stamina: 83 }
   },
   {
     id: 'lg_hong_changki',
@@ -428,6 +482,7 @@ export const INITIAL_PLAYERS: Player[] = [
     salary: 16,
     contractYears: 1,
     isPitcher: true,
+    isForeign: true,
     overall: 91,
     traits: ['2026 베어스 이적 선발', '좌완 에이스', '빅게임 피처'],
     pitcherStats: { stuff: 90, control: 91, breaking: 93, clutch: 92, stamina: 91 }
@@ -441,9 +496,25 @@ export const INITIAL_PLAYERS: Player[] = [
     salary: 14,
     contractYears: 1,
     isPitcher: true,
+    isForeign: true,
     overall: 89,
     traits: ['2026 신규 외인', '강력한 싱커볼러'],
     pitcherStats: { stuff: 92, control: 88, breaking: 88, clutch: 86, stamina: 89 }
+  },
+  {
+    id: 'doosan_mori',
+    name: '모리',
+    teamId: 'doosan',
+    position: 'SP',
+    age: 29,
+    salary: 8,
+    contractYears: 1,
+    isPitcher: true,
+    isForeign: true,
+    isAsianQuota: true,
+    overall: 87,
+    traits: ['2026 아시아쿼터 선발', '체인지업 스페셜리스트'],
+    pitcherStats: { stuff: 87, control: 92, breaking: 90, clutch: 85, stamina: 89 }
   },
   {
     id: 'doosan_choi_seungyong',
@@ -493,6 +564,7 @@ export const INITIAL_PLAYERS: Player[] = [
     salary: 13,
     contractYears: 1,
     isPitcher: false,
+    isForeign: true,
     overall: 89,
     traits: ['2026 신규 외인 거포', '잠실 펜스 넘기는 괴력'],
     batterStats: { contact: 82, power: 94, eye: 83, speed: 65, defense: 84, stamina: 87 }
@@ -588,6 +660,7 @@ export const INITIAL_PLAYERS: Player[] = [
     salary: 14,
     contractYears: 1,
     isPitcher: true,
+    isForeign: true,
     overall: 90,
     traits: ['2026 외인 1선발', '탈삼진 머신'],
     pitcherStats: { stuff: 93, control: 88, breaking: 90, clutch: 88, stamina: 90 }
@@ -601,6 +674,7 @@ export const INITIAL_PLAYERS: Player[] = [
     salary: 12,
     contractYears: 1,
     isPitcher: true,
+    isForeign: true,
     overall: 88,
     traits: ['2026 외인 2선발', '안정된 이닝이터'],
     pitcherStats: { stuff: 90, control: 89, breaking: 87, clutch: 86, stamina: 91 }
@@ -627,9 +701,25 @@ export const INITIAL_PLAYERS: Player[] = [
     salary: 15,
     contractYears: 1,
     isPitcher: false,
+    isForeign: true,
     overall: 91,
     traits: ['2026 신규 외인', '파워와 스피드 겸비', '호타준족'],
     batterStats: { contact: 86, power: 93, eye: 85, speed: 86, defense: 86, stamina: 89 }
+  },
+  {
+    id: 'kt_wang',
+    name: '왕웨이중',
+    teamId: 'kt',
+    position: 'SP',
+    age: 33,
+    salary: 8,
+    contractYears: 1,
+    isPitcher: true,
+    isForeign: true,
+    isAsianQuota: true,
+    overall: 86,
+    traits: ['2026 아시아쿼터 선발', 'KBO 유경험 좌완'],
+    pitcherStats: { stuff: 86, control: 90, breaking: 89, clutch: 86, stamina: 88 }
   },
   {
     id: 'kt_heo_kyoungmin',
@@ -696,9 +786,24 @@ export const INITIAL_PLAYERS: Player[] = [
     salary: 14,
     contractYears: 1,
     isPitcher: true,
+    isForeign: true,
     overall: 90,
     traits: ['2026 외인 에이스', '강력한 무브먼트'],
     pitcherStats: { stuff: 92, control: 88, breaking: 91, clutch: 87, stamina: 90 }
+  },
+  {
+    id: 'ssg_anderson',
+    name: '앤더슨',
+    teamId: 'ssg',
+    position: 'SP',
+    age: 31,
+    salary: 15,
+    contractYears: 1,
+    isPitcher: true,
+    isForeign: true,
+    overall: 91,
+    traits: ['156km 광속구 에이스', '탈삼진 머신'],
+    pitcherStats: { stuff: 95, control: 87, breaking: 90, clutch: 90, stamina: 91 }
   },
   {
     id: 'ssg_takeda',
@@ -709,6 +814,8 @@ export const INITIAL_PLAYERS: Player[] = [
     salary: 11,
     contractYears: 1,
     isPitcher: true,
+    isForeign: true,
+    isAsianQuota: true,
     overall: 88,
     traits: ['2026 아시아쿼터 선발', '정교한 제구'],
     pitcherStats: { stuff: 87, control: 93, breaking: 90, clutch: 86, stamina: 89 }
@@ -748,6 +855,7 @@ export const INITIAL_PLAYERS: Player[] = [
     salary: 16,
     contractYears: 1,
     isPitcher: false,
+    isForeign: true,
     overall: 92,
     traits: ['쿠바 특급', '타격왕 출신', '안타 기계'],
     batterStats: { contact: 95, power: 85, eye: 87, speed: 80, defense: 85, stamina: 86 }
@@ -830,6 +938,7 @@ export const INITIAL_PLAYERS: Player[] = [
     salary: 15,
     contractYears: 1,
     isPitcher: true,
+    isForeign: true,
     overall: 91,
     traits: ['2026 신규 외인 1선발', '154km 강속구', '구위형 피처'],
     pitcherStats: { stuff: 94, control: 88, breaking: 89, clutch: 88, stamina: 91 }
@@ -843,6 +952,7 @@ export const INITIAL_PLAYERS: Player[] = [
     salary: 13,
     contractYears: 1,
     isPitcher: true,
+    isForeign: true,
     overall: 89,
     traits: ['2026 신규 외인 2선발', '슬라이더 장인'],
     pitcherStats: { stuff: 90, control: 89, breaking: 91, clutch: 86, stamina: 89 }
@@ -882,9 +992,25 @@ export const INITIAL_PLAYERS: Player[] = [
     salary: 17,
     contractYears: 1,
     isPitcher: false,
+    isForeign: true,
     overall: 94,
     traits: ['202안타의 사나이', '안타 기계', '완벽한 컨택'],
     batterStats: { contact: 99, power: 85, eye: 90, speed: 75, defense: 84, stamina: 93 }
+  },
+  {
+    id: 'lotte_suzuki',
+    name: '스즈키',
+    teamId: 'lotte',
+    position: 'RP',
+    age: 28,
+    salary: 7,
+    contractYears: 1,
+    isPitcher: true,
+    isForeign: true,
+    isAsianQuota: true,
+    overall: 86,
+    traits: ['2026 아시아쿼터 셋업맨', '탈삼진 포크볼'],
+    pitcherStats: { stuff: 90, control: 88, breaking: 91, clutch: 86, stamina: 83 }
   },
   {
     id: 'lotte_han_donghee',
@@ -977,6 +1103,7 @@ export const INITIAL_PLAYERS: Player[] = [
     salary: 15,
     contractYears: 1,
     isPitcher: true,
+    isForeign: true,
     overall: 91,
     traits: ['2026 외인 선발', '강력한 하이 패스트볼'],
     pitcherStats: { stuff: 94, control: 88, breaking: 90, clutch: 88, stamina: 90 }
@@ -990,6 +1117,7 @@ export const INITIAL_PLAYERS: Player[] = [
     salary: 13,
     contractYears: 1,
     isPitcher: true,
+    isForeign: true,
     overall: 89,
     traits: ['2026 외인 선발', '정교한 체인지업'],
     pitcherStats: { stuff: 89, control: 92, breaking: 91, clutch: 87, stamina: 90 }
@@ -1042,9 +1170,25 @@ export const INITIAL_PLAYERS: Player[] = [
     salary: 15,
     contractYears: 1,
     isPitcher: false,
+    isForeign: true,
     overall: 92,
     traits: ['에너자이저', '폭발적인 배트 스피드', '홈런포'],
     batterStats: { contact: 90, power: 94, eye: 86, speed: 84, defense: 82, stamina: 90 }
+  },
+  {
+    id: 'hanwha_yamada',
+    name: '야마다',
+    teamId: 'hanwha',
+    position: 'SP',
+    age: 29,
+    salary: 8,
+    contractYears: 1,
+    isPitcher: true,
+    isForeign: true,
+    isAsianQuota: true,
+    overall: 87,
+    traits: ['2026 아시아쿼터 선발', '정교한 슬라이더와 커맨드'],
+    pitcherStats: { stuff: 88, control: 92, breaking: 89, clutch: 86, stamina: 89 }
   },
   {
     id: 'hanwha_sim_woojun',
@@ -1111,9 +1255,24 @@ export const INITIAL_PLAYERS: Player[] = [
     salary: 15,
     contractYears: 1,
     isPitcher: true,
+    isForeign: true,
     overall: 92,
     traits: ['2026 다이노스 1선발', '강력한 탈삼진 능력'],
     pitcherStats: { stuff: 94, control: 90, breaking: 93, clutch: 90, stamina: 91 }
+  },
+  {
+    id: 'nc_hart',
+    name: '하트',
+    teamId: 'nc',
+    position: 'SP',
+    age: 33,
+    salary: 16,
+    contractYears: 1,
+    isPitcher: true,
+    isForeign: true,
+    overall: 93,
+    traits: ['좌완 특급 에이스', '마구 스위퍼', '탈삼진 1위'],
+    pitcherStats: { stuff: 94, control: 93, breaking: 96, clutch: 93, stamina: 91 }
   },
   {
     id: 'nc_toda',
@@ -1124,6 +1283,8 @@ export const INITIAL_PLAYERS: Player[] = [
     salary: 11,
     contractYears: 1,
     isPitcher: true,
+    isForeign: true,
+    isAsianQuota: true,
     overall: 88,
     traits: ['2026 아시아쿼터 선발', '제구형 우완'],
     pitcherStats: { stuff: 87, control: 93, breaking: 89, clutch: 87, stamina: 89 }
@@ -1163,6 +1324,7 @@ export const INITIAL_PLAYERS: Player[] = [
     salary: 14,
     contractYears: 1,
     isPitcher: false,
+    isForeign: true,
     overall: 91,
     traits: ['2026 신규 외인 거포', '중심타선 슬러거'],
     batterStats: { contact: 85, power: 95, eye: 87, speed: 65, defense: 85, stamina: 88 }
@@ -1232,6 +1394,7 @@ export const INITIAL_PLAYERS: Player[] = [
     salary: 14,
     contractYears: 1,
     isPitcher: true,
+    isForeign: true,
     overall: 90,
     traits: ['2026 히어로즈 복귀', '155km 광속구', '이닝이터'],
     pitcherStats: { stuff: 94, control: 88, breaking: 87, clutch: 88, stamina: 92 }
@@ -1245,6 +1408,8 @@ export const INITIAL_PLAYERS: Player[] = [
     salary: 8,
     contractYears: 1,
     isPitcher: true,
+    isForeign: true,
+    isAsianQuota: true,
     overall: 86,
     traits: ['2026 아시아쿼터', '날카로운 슬라이더'],
     pitcherStats: { stuff: 87, control: 91, breaking: 88, clutch: 84, stamina: 88 }
@@ -1271,6 +1436,7 @@ export const INITIAL_PLAYERS: Player[] = [
     salary: 14,
     contractYears: 1,
     isPitcher: false,
+    isForeign: true,
     overall: 92,
     traits: ['2026 메이저리그 출신 외인', '파워풀 스윙', '거포 내야수'],
     batterStats: { contact: 88, power: 96, eye: 86, speed: 76, defense: 83, stamina: 88 }
@@ -1284,6 +1450,7 @@ export const INITIAL_PLAYERS: Player[] = [
     salary: 13,
     contractYears: 1,
     isPitcher: false,
+    isForeign: true,
     overall: 90,
     traits: ['2026 영웅군단 합류', '홈런 타자', '장타력'],
     batterStats: { contact: 82, power: 96, eye: 84, speed: 50, defense: 84, stamina: 82 }

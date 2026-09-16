@@ -31,6 +31,7 @@ export interface Player {
   overall: number // S(90+), A(80+), B(70+), C(60+), D(<60)
   traits: string[]
   isForeign?: boolean
+  isAsianQuota?: boolean
   isRookie?: boolean
   isInjured?: boolean
   injuryWeeks?: number
@@ -122,6 +123,8 @@ export interface ForeignCandidate {
   batterStats?: BatterStats
   overall: number
   traits: string[]
+  isAsianQuota?: boolean
+  country?: string
 }
 
 export interface PostseasonMatch {

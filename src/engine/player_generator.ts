@@ -30,10 +30,14 @@ const KOREAN_FIRST_NAMES = [
 const HIGH_SCHOOLS = ['덕수고', '휘문고', '북일고', '경북고', '부산고', '광주일고', '장충고', '유신고', '세광고', '대구상원고']
 const UNIVERSITIES = ['고려대', '연세대', '동국대', '인하대', '단국대', '원광대', '한양대', '건국대']
 
+const ASIAN_NAMES = [
+  '사토', '타나카', '스즈키', '야마다', '오오타니', '야마모토', '왕웨이중', '첸관위', '린즈웨이', '요시다', '마에다', '이토'
+]
+
 export function generateForeignCandidates(prng: PRNG, season: number): ForeignCandidate[] {
   const candidates: ForeignCandidate[] = []
 
-  // 1. 에이스급 선발 투수 (SP)
+  // 1. 에이스급 선발 투수 (SP) - MLB 40인 로스터 출신
   const p1LastName = prng.choice(FOREIGN_LAST_NAMES)
   const p1Traits = prng.choice(FOREIGN_PITCHER_TRAITS)
   const p1Stuff = prng.nextInt(91, 96)
@@ -45,8 +49,8 @@ export function generateForeignCandidates(prng: PRNG, season: number): ForeignCa
     position: 'SP',
     age: prng.nextInt(28, 33),
     salary: prng.nextInt(18, 24), // 18~24억원
-    previousTeam: 'MLB 템파베이 40인 로스터',
-    scoutSummary: 'MLB급 154km 강속구와 횡으로 크게 꺾이는 명품 스위퍼를 장착한 특급 에이스.',
+    previousTeam: 'MLB 트리플A 탈삼진 1위',
+    scoutSummary: 'MLB급 154km 강속구와 횡으로 크게 꺾이는 명품 스위퍼를 장착한 외인 1선발.',
     isPitcher: true,
     pitcherStats: {
       stuff: p1Stuff,
@@ -56,7 +60,8 @@ export function generateForeignCandidates(prng: PRNG, season: number): ForeignCa
       stamina: prng.nextInt(88, 95)
     },
     overall: p1Ovr,
-    traits: p1Traits
+    traits: p1Traits,
+    country: '미국'
   })
 
   // 2. 가성비 안정형 선발 투수 (SP)
@@ -74,8 +79,8 @@ export function generateForeignCandidates(prng: PRNG, season: number): ForeignCa
     position: 'SP',
     age: prng.nextInt(29, 34),
     salary: prng.nextInt(11, 15), // 11~15억원
-    previousTeam: '일본 프로야구(NPB) 선발 출신',
-    scoutSummary: '구속은 148km 수준이나 예리한 제구력과 다양한 변화구로 6이닝을 안정적으로 먹어주는 이닝이터.',
+    previousTeam: '베네수엘라 윈터리그 에이스',
+    scoutSummary: '구속 148km 수준이나 날카로운 핀포인트 제구력과 다양한 변화구로 6이닝을 책임지는 이닝이터.',
     isPitcher: true,
     pitcherStats: {
       stuff: p2Stuff,
@@ -85,17 +90,21 @@ export function generateForeignCandidates(prng: PRNG, season: number): ForeignCa
       stamina: prng.nextInt(85, 92)
     },
     overall: p2Ovr,
-    traits: p2Traits
+    traits: p2Traits,
+    country: '베네수엘라'
   })
 
   // 3. 중심타선 거포형 야수 (1B/OF)
-  const b1LastName = prng.choice(FOREIGN_LAST_NAMES)
+  let b1LastName = prng.choice(FOREIGN_LAST_NAMES)
+  while (b1LastName === p1LastName || b1LastName === p2LastName) {
+    b1LastName = prng.choice(FOREIGN_LAST_NAMES)
+  }
   const b1Traits = prng.choice(FOREIGN_BATTER_TRAITS)
   const b1Contact = prng.nextInt(85, 91)
   const b1Power = prng.nextInt(92, 97)
   const b1Ovr = Math.round((b1Contact * 0.45) + (b1Power * 0.55))
   candidates.push({
-    id: `foreign_batter_${season}_${prng.nextInt(100, 999)}`,
+    id: `foreign_batter_slugger_${season}_${prng.nextInt(100, 999)}`,
     name: b1LastName,
     position: prng.choice(['1B', 'OF', '3B'] as Position[]),
     age: prng.nextInt(27, 32),
@@ -112,7 +121,96 @@ export function generateForeignCandidates(prng: PRNG, season: number): ForeignCa
       stamina: prng.nextInt(85, 92)
     },
     overall: b1Ovr,
-    traits: b1Traits
+    traits: b1Traits,
+    country: '도미니카'
+  })
+
+  // 4. 호타준족형 외야수/내야수 (OF/2B/SS)
+  let b2LastName = prng.choice(FOREIGN_LAST_NAMES)
+  while (b2LastName === p1LastName || b2LastName === p2LastName || b2LastName === b1LastName) {
+    b2LastName = prng.choice(FOREIGN_LAST_NAMES)
+  }
+  const b2Contact = prng.nextInt(89, 94)
+  const b2Power = prng.nextInt(82, 88)
+  const b2Ovr = Math.round((b2Contact * 0.55) + (b2Power * 0.45))
+  candidates.push({
+    id: `foreign_batter_contact_${season}_${prng.nextInt(100, 999)}`,
+    name: b2LastName,
+    position: prng.choice(['OF', 'SS', '2B'] as Position[]),
+    age: prng.nextInt(26, 31),
+    salary: prng.nextInt(13, 17),
+    previousTeam: 'MLB AAA 올스타 외야수',
+    scoutSummary: '3할 타율을 기대할 수 있는 스프레이 히터이자 넓은 수비 범위를 자랑하는 5툴 플레이어.',
+    isPitcher: false,
+    batterStats: {
+      contact: b2Contact,
+      power: b2Power,
+      eye: prng.nextInt(88, 95),
+      speed: prng.nextInt(85, 92),
+      defense: prng.nextInt(88, 94),
+      stamina: prng.nextInt(86, 92)
+    },
+    overall: b2Ovr,
+    traits: ['5툴 플레이어', '정교한 컨택', '넓은 수비 범위'],
+    country: '미국'
+  })
+
+  // 5. 아시아쿼터 특급 투수 (NPB/CPBL 출신)
+  const a1Name = prng.choice(ASIAN_NAMES)
+  const a1Country = prng.choice(['일본', '대만'])
+  const a1Stuff = prng.nextInt(86, 90)
+  const a1Control = prng.nextInt(88, 93)
+  candidates.push({
+    id: `asian_pitcher_${season}_${prng.nextInt(100, 999)}`,
+    name: a1Name,
+    position: prng.choice(['SP', 'RP'] as Position[]),
+    age: prng.nextInt(27, 33),
+    salary: prng.nextInt(7, 10), // 아시아쿼터 가성비 연봉 7~10억원
+    previousTeam: `${a1Country} 프로리그 올스타`,
+    scoutSummary: `예리한 포크볼과 높은 제구 안정성을 자랑하는 아시아쿼터 즉시전력감 투수.`,
+    isPitcher: true,
+    pitcherStats: {
+      stuff: a1Stuff,
+      control: a1Control,
+      breaking: prng.nextInt(87, 93),
+      clutch: prng.nextInt(84, 90),
+      stamina: prng.nextInt(84, 91)
+    },
+    overall: Math.round((a1Stuff + a1Control) / 2),
+    traits: ['아시아쿼터 특급', '칼날 제구', '낙차 큰 포크볼'],
+    isAsianQuota: true,
+    country: a1Country
+  })
+
+  // 6. 아시아쿼터 정교한 야수 (NPB/CPBL 출신)
+  let a2Name = prng.choice(ASIAN_NAMES)
+  while (a2Name === a1Name) {
+    a2Name = prng.choice(ASIAN_NAMES)
+  }
+  const a2Country = prng.choice(['일본', '대만'])
+  const a2Contact = prng.nextInt(88, 93)
+  const a2Power = prng.nextInt(75, 82)
+  candidates.push({
+    id: `asian_batter_${season}_${prng.nextInt(100, 999)}`,
+    name: a2Name,
+    position: prng.choice(['2B', 'SS', 'OF'] as Position[]),
+    age: prng.nextInt(26, 32),
+    salary: prng.nextInt(6, 9),
+    previousTeam: `${a2Country} 골든글러브 내야수`,
+    scoutSummary: `실책 없는 물샐틈없는 그물망 수비와 높은 컨택 성공률을 보유한 아시아쿼터 수비 기둥.`,
+    isPitcher: false,
+    batterStats: {
+      contact: a2Contact,
+      power: a2Power,
+      eye: prng.nextInt(87, 94),
+      speed: prng.nextInt(82, 89),
+      defense: prng.nextInt(92, 96),
+      stamina: prng.nextInt(84, 90)
+    },
+    overall: Math.round((a2Contact * 0.5) + (a2Power * 0.5)),
+    traits: ['아시아쿼터 내야수', '명품 그물망 수비', '작전수행 도사'],
+    isAsianQuota: true,
+    country: a2Country
   })
 
   return candidates
@@ -225,7 +323,8 @@ export function convertForeignToPlayer(candidate: ForeignCandidate, teamId: stri
     batterStats: candidate.batterStats,
     overall: candidate.overall,
     traits: candidate.traits,
-    isForeign: true
+    isForeign: true,
+    isAsianQuota: candidate.isAsianQuota
   }
 }
 

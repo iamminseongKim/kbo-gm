@@ -130,8 +130,12 @@ export const RosterModal: React.FC<RosterModalProps> = ({
                           {p.name}
                         </span>
                         {p.isForeign && (
-                          <span className="text-[10px] font-bold px-1.5 py-0.2 rounded-full bg-amber-100 text-amber-800 dark:bg-amber-400/15 dark:text-amber-300 border border-amber-300/80 dark:border-amber-400/30">
-                            외인
+                          <span className={`text-[10px] font-bold px-1.5 py-0.2 rounded-full border ${
+                            p.isAsianQuota
+                              ? 'bg-purple-100 text-purple-800 dark:bg-purple-400/15 dark:text-purple-300 border-purple-300/80 dark:border-purple-400/30'
+                              : 'bg-amber-100 text-amber-800 dark:bg-amber-400/15 dark:text-amber-300 border-amber-300/80 dark:border-amber-400/30'
+                          }`}>
+                            {p.isAsianQuota ? '아시아' : '외인'}
                           </span>
                         )}
                         <span className="text-xs text-neutral-500 dark:text-neutral-400 font-mono">

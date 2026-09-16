@@ -20,7 +20,6 @@ import { simulatePostseason, SeriesResult, TacticChoice } from './engine/postsea
 import {
   generateForeignCandidates,
   generateRookieProspects,
-  convertForeignToPlayer,
   convertRookieToPlayer
 } from './engine/player_generator'
 
@@ -141,34 +140,38 @@ export default function App() {
     }
   }
 
-  // [Phase 1] 스토브리그: 선수 방출
-  const handleReleasePlayer = (playerId: string, refundBudget: number) => {
-    setPlayers(prev => prev.filter(p => p.id !== playerId))
+  // [Phase 1] 스토브리그 전체 결정 확정 (외인 4인 슬롯, 베테랑 방출, 예산 및 전력 반영)
+  const handleFinalizeStoveLeague = (
+    finalForeignPlayers: Player[],
+    releasedPlayerIds: string[],
+    netBudgetDelta: number,
+    powerPenalty: number,
+    fanPenalty: number
+  ) => {
+    // 1. 베테랑 방출 및 외인 명단 갱신
+    setPlayers(prev => {
+      const withoutUserForeignsAndReleased = prev.filter(
+        p => !(p.teamId === userTeamId && p.isForeign) && !releasedPlayerIds.includes(p.id)
+      )
+      return [...withoutUserForeignsAndReleased, ...finalForeignPlayers]
+    })
+
+    // 2. 예산 및 팬심 반영
     setTeams(prev => ({
       ...prev,
       [userTeamId]: {
         ...prev[userTeamId],
-        budget: prev[userTeamId].budget + refundBudget
+        budget: prev[userTeamId].budget + netBudgetDelta,
+        fanSupport: Math.min(100, Math.max(0, prev[userTeamId].fanSupport - fanPenalty))
       }
     }))
-  }
 
-  // [Phase 1] 스토브리그: 외국인 선수 계약 (로스터 실제 교체)
-  const handleSignForeign = (candidate: ForeignCandidate, replacePlayerId: string) => {
-    const newPlayer = convertForeignToPlayer(candidate, userTeamId)
-    setPlayers(prev => prev.map(p => p.id === replacePlayerId ? newPlayer : p))
-    setTeams(prev => ({
-      ...prev,
-      [userTeamId]: {
-        ...prev[userTeamId],
-        budget: prev[userTeamId].budget - candidate.salary,
-        fanSupport: Math.min(100, prev[userTeamId].fanSupport + 6)
-      }
-    }))
-  }
+    // 3. 외인 미사용 공백 페널티 적용 (팀 전력 대폭 하락)
+    if (powerPenalty > 0) {
+      setModifierDelta(prev => prev - powerPenalty)
+    }
 
-  // [Phase 1 -> 2] 스토브리그 완료 -> 스프링캠프(프리시즌)
-  const handleProceedFromStoveLeague = () => {
+    // 4. 다음 단계(스프링캠프)로 진입
     setPhase('PRESEASON')
   }
 
@@ -435,9 +438,7 @@ export default function App() {
                 team={userTeam}
                 players={players}
                 candidates={foreignCandidates}
-                onReleasePlayer={handleReleasePlayer}
-                onSignForeign={handleSignForeign}
-                onProceed={handleProceedFromStoveLeague}
+                onFinalizeStoveLeague={handleFinalizeStoveLeague}
               />
             )}
 
