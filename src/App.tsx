@@ -80,6 +80,13 @@ export default function App() {
   // UI 상태
   const [isRosterOpen, setIsRosterOpen] = useState(false)
 
+  // 시즌 시작 시 스토브리그 직전 스냅샷 (예산 오링 등 발생 시 재설계로 복귀 지원)
+  const [seasonSnapshot, setSeasonSnapshot] = useState<{
+    team: Team
+    players: Player[]
+    season: number
+  } | null>(null)
+
   // PRNG 인스턴스
   const getPrng = (extra = 0) => new PRNG(`${seed}_s${season}_${extra}`)
 
@@ -94,13 +101,21 @@ export default function App() {
     setHistory([])
     setIsFired(false)
     setFiredReason('')
-    setTeams(JSON.parse(JSON.stringify(KBO_TEAMS)))
+    const clonedTeams = JSON.parse(JSON.stringify(KBO_TEAMS))
+    setTeams(clonedTeams)
 
     // 시즌 1 선수들에게 초기 폼(대폭발 / 슬럼프 / 상승 / 부진) 부여
     const initPrng = new PRNG(`${customSeed}_season_1_forms`)
     const basePlayers = JSON.parse(JSON.stringify(INITIAL_PLAYERS))
     const playersWithForms = assignSeasonPlayerForms(basePlayers, initPrng)
     setPlayers(playersWithForms)
+
+    const initialTeam = clonedTeams[teamId] || clonedTeams.kia
+    setSeasonSnapshot({
+      team: JSON.parse(JSON.stringify(initialTeam)),
+      players: JSON.parse(JSON.stringify(playersWithForms)),
+      season: 1
+    })
 
     initSeason(1, customSeed)
     setPhase('STOVE_LEAGUE')
@@ -224,6 +239,48 @@ export default function App() {
   const handleConfirmCallup = (option: EventOption) => {
     applyOptionDeltas(option)
     setPhase('ROOKIE_DRAFT')
+  }
+
+  // 모기업 특별 지원금 긴급 차입 (신뢰도 -8, 예산 +10억)
+  const handleBorrowEmergencyBudget = () => {
+    setTeams(prev => {
+      const cur = prev[userTeamId]
+      return {
+        ...prev,
+        [userTeamId]: {
+          ...cur,
+          budget: cur.budget + 10,
+          ownerTrust: Math.max(5, cur.ownerTrust - 8)
+        }
+      }
+    })
+  }
+
+  // 스토브리그로 되돌아가기 (예산 오링 탈출 및 선수단 재설계)
+  const handleBackToStoveLeague = () => {
+    if (seasonSnapshot && seasonSnapshot.season === season) {
+      setTeams(prev => ({
+        ...prev,
+        [userTeamId]: JSON.parse(JSON.stringify(seasonSnapshot.team))
+      }))
+      setPlayers(JSON.parse(JSON.stringify(seasonSnapshot.players)))
+    } else {
+      // 스냅샷이 없는 경우의 안전 복구 (외인 연봉 및 기본 예산 복원)
+      const userForeigns = players.filter(p => p.teamId === userTeamId && p.isForeign)
+      const foreignTotalSalary = userForeigns.reduce((acc, p) => acc + p.salary, 0)
+      setTeams(prev => {
+        const cur = prev[userTeamId]
+        return {
+          ...prev,
+          [userTeamId]: {
+            ...cur,
+            budget: Math.max(cur.budget, cur.budget + Math.max(45, foreignTotalSalary))
+          }
+        }
+      })
+    }
+    setModifierDelta(0)
+    setPhase('STOVE_LEAGUE')
   }
 
   // [Phase 5 -> 6] 신인 1차 지명 완료 -> 후반기 돌발 이벤트
@@ -385,6 +442,13 @@ export default function App() {
     // 2. 차기 시즌 선수단 컨디션 / 슬럼프(Form) 부여
     const finalPlayers = assignSeasonPlayerForms(updatedPlayers, prng)
     setPlayers(finalPlayers)
+
+    const currentTeam = teams[userTeamId]
+    setSeasonSnapshot({
+      team: JSON.parse(JSON.stringify(currentTeam)),
+      players: JSON.parse(JSON.stringify(finalPlayers)),
+      season: nextSeason
+    })
 
     setSeason(nextSeason)
     const currentRebuild = teams[userTeamId]?.rebuildingStack || 0
@@ -554,6 +618,8 @@ export default function App() {
                 team={userTeam}
                 prospects={rookieProspects}
                 onDraftRookie={handleDraftRookie}
+                onBackToStoveLeague={handleBackToStoveLeague}
+                onBorrowEmergencyBudget={handleBorrowEmergencyBudget}
               />
             )}
 

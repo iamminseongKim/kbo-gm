@@ -312,6 +312,36 @@ export function generateRookieProspects(prng: PRNG, season: number, rebuildStack
     traits: ['호타준족', '발 빠른 5툴', '총알 송구']
   })
 
+  // 4. 2군 육성선수 / 신고선수 발굴 (계약금 0원 - 예산 부족 시에도 상시 지명 가능)
+  let p4Name = `${prng.choice(KOREAN_SURNAMES)}${prng.choice(KOREAN_FIRST_NAMES)}`
+  while (p4Name === p1Name || p4Name === p2Name || p4Name === p3Name) {
+    p4Name = `${prng.choice(KOREAN_SURNAMES)}${prng.choice(KOREAN_FIRST_NAMES)}`
+  }
+  const p4School = prng.choice(UNIVERSITIES)
+  const p4Contact = prng.nextInt(68, 74) + statBoost
+  const p4Power = prng.nextInt(66, 73) + statBoost
+  prospects.push({
+    id: `rookie_${season}_4_dev`,
+    name: p4Name,
+    position: prng.choice(['C', '2B', 'OF', 'RP'] as Position[]),
+    age: 23,
+    school: `${p4School} (육성선수)`,
+    signingBonus: 0,
+    scoutSummary: '계약금 0원으로 영입하는 2군 육성선수(신고선수). 당장 화려하진 않으나 성실한 훈련과 투지로 깜짝 스타 도약을 노리는 숨은 원석.',
+    isPitcher: false,
+    batterStats: {
+      contact: p4Contact,
+      power: p4Power,
+      eye: prng.nextInt(75, 82),
+      speed: prng.nextInt(74, 82),
+      defense: prng.nextInt(74, 82),
+      stamina: prng.nextInt(80, 88)
+    },
+    overall: Math.round((p4Contact + p4Power) / 2),
+    potential: 'B',
+    traits: ['육성선수 신화', '악바리 근성', '0원 계약']
+  })
+
   return prospects
 }
 
