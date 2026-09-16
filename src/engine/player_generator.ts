@@ -4,7 +4,14 @@ import { PRNG } from './prng'
 
 const FOREIGN_LAST_NAMES = [
   '로메로', '산체스', '쿠에바스', '뷰캐넌', '맥키넌', '라모스', '로하스', '폰트', '켈리', '오스틴',
-  '알칸타라', '페냐', '디아즈', '레이예스', '앤더슨', '헤이수스', '헤르난데스', '발데스'
+  '알칸타라', '페냐', '디아즈', '레이예스', '앤더슨', '헤이수스', '헤르난데스', '발데스',
+  '카스티요', '마르티네스', '가르시아', '플로레스', '워커', '브라운', '밀러', '존슨',
+  '맥컬러스', '카터', '로렌스', '크로포드', '메히아', '몬테로', '아길라르', '페랄타'
+]
+
+const FOREIGN_FIRST_NAMES = [
+  '에단', '마커스', '타일러', '제이슨', '루이스', '카를로스', '미겔', '라파엘',
+  '도미닉', '트레버', '브랜든', '콜', '노아', '앙헬', '호세', '마테오'
 ]
 
 const FOREIGN_PITCHER_TRAITS = [
@@ -24,21 +31,40 @@ const FOREIGN_BATTER_TRAITS = [
 const KOREAN_SURNAMES = ['김', '이', '박', '최', '정', '강', '조', '윤', '장', '임', '한', '오', '서', '신', '권']
 const KOREAN_FIRST_NAMES = [
   '도영', '시환', '동희', '우혁', '민우', '현준', '지원', '태인', '승호', '의리', '영웅', '재현',
-  '원빈', '주원', '건우', '도윤', '서진', '하람', '시우', '도현', '준서', '준호', '태민', '진우'
+  '원빈', '주원', '건우', '도윤', '서진', '하람', '시우', '도현', '준서', '준호', '태민', '진우',
+  '현우', '민재', '선우', '지후', '은찬', '재민', '성윤', '규민', '승재', '정우', '건희', '우진',
+  '재원', '민석', '윤호', '태윤', '성민', '하준', '지환', '승현'
 ]
 
-const HIGH_SCHOOLS = ['덕수고', '휘문고', '북일고', '경북고', '부산고', '광주일고', '장충고', '유신고', '세광고', '대구상원고']
-const UNIVERSITIES = ['고려대', '연세대', '동국대', '인하대', '단국대', '원광대', '한양대', '건국대']
+const HIGH_SCHOOLS = ['덕수고', '휘문고', '북일고', '경북고', '부산고', '광주일고', '장충고', '유신고', '세광고', '대구상원고', '서울고', '충암고', '배명고', '마산용마고', '인천고', '강릉고', '전주고', '제물포고']
+const UNIVERSITIES = ['고려대', '연세대', '동국대', '인하대', '단국대', '원광대', '한양대', '건국대', '성균관대', '홍익대', '경희대', '중앙대', '동아대', '영남대']
 
 const ASIAN_NAMES = [
-  '사토', '타나카', '스즈키', '야마다', '오오타니', '야마모토', '왕웨이중', '첸관위', '린즈웨이', '요시다', '마에다', '이토'
+  '사토 켄타', '타나카 료', '스즈키 카이', '야마다 슌', '야마모토 렌', '요시다 하루', '마에다 소라', '이토 코타',
+  '다카하시 진', '나카무라 유토', '고바야시 레오', '와타나베 쇼', '천관위', '린즈웨이', '왕즈쉬안', '장웨이룬',
+  '린위민', '궈톈신', '쩡쥔웨', '리쯔창'
 ]
 
-export function generateForeignCandidates(prng: PRNG, season: number): ForeignCandidate[] {
+const PREVIOUS_TEAMS = [
+  '시애틀 산하 AAA 타코마', '탬파베이 산하 AAA 더럼', '애리조나 산하 AAA 리노',
+  '멕시칸리그 몬테레이', '도미니카 윈터리그 에스트레야스', '베네수엘라 윈터리그 라라',
+  '쿠바 국가대표팀', '독립리그 캔자스시티', '푸에르토리코 윈터리그 카과스'
+]
+
+const foreignName = (prng: PRNG, used: Set<string>) => {
+  let name = ''
+  do name = `${prng.choice(FOREIGN_FIRST_NAMES)} ${prng.choice(FOREIGN_LAST_NAMES)}`
+  while (used.has(name))
+  used.add(name)
+  return name
+}
+
+export function generateForeignCandidates(prng: PRNG, season: number, excludedNames: string[] = []): ForeignCandidate[] {
   const candidates: ForeignCandidate[] = []
+  const usedNames = new Set<string>(excludedNames)
 
   // 1. 에이스급 선발 투수 (SP) - MLB 40인 로스터 출신
-  const p1LastName = prng.choice(FOREIGN_LAST_NAMES)
+  const p1LastName = foreignName(prng, usedNames)
   const p1Traits = prng.choice(FOREIGN_PITCHER_TRAITS)
   const p1Stuff = prng.nextInt(91, 96)
   const p1Control = prng.nextInt(88, 94)
@@ -49,7 +75,7 @@ export function generateForeignCandidates(prng: PRNG, season: number): ForeignCa
     position: 'SP',
     age: prng.nextInt(28, 33),
     salary: prng.nextInt(18, 24), // 18~24억원
-    previousTeam: 'MLB 트리플A 탈삼진 1위',
+    previousTeam: prng.choice(PREVIOUS_TEAMS),
     scoutSummary: 'MLB급 154km 강속구와 횡으로 크게 꺾이는 명품 스위퍼를 장착한 외인 1선발.',
     isPitcher: true,
     pitcherStats: {
@@ -65,10 +91,7 @@ export function generateForeignCandidates(prng: PRNG, season: number): ForeignCa
   })
 
   // 2. 가성비 안정형 선발 투수 (SP)
-  let p2LastName = prng.choice(FOREIGN_LAST_NAMES)
-  while (p2LastName === p1LastName) {
-    p2LastName = prng.choice(FOREIGN_LAST_NAMES)
-  }
+  const p2LastName = foreignName(prng, usedNames)
   const p2Traits = prng.choice(FOREIGN_PITCHER_TRAITS)
   const p2Stuff = prng.nextInt(85, 89)
   const p2Control = prng.nextInt(87, 92)
@@ -79,7 +102,7 @@ export function generateForeignCandidates(prng: PRNG, season: number): ForeignCa
     position: 'SP',
     age: prng.nextInt(29, 34),
     salary: prng.nextInt(11, 15), // 11~15억원
-    previousTeam: '베네수엘라 윈터리그 에이스',
+    previousTeam: prng.choice(PREVIOUS_TEAMS),
     scoutSummary: '구속 148km 수준이나 날카로운 핀포인트 제구력과 다양한 변화구로 6이닝을 책임지는 이닝이터.',
     isPitcher: true,
     pitcherStats: {
@@ -95,10 +118,7 @@ export function generateForeignCandidates(prng: PRNG, season: number): ForeignCa
   })
 
   // 3. 중심타선 거포형 야수 (1B/OF)
-  let b1LastName = prng.choice(FOREIGN_LAST_NAMES)
-  while (b1LastName === p1LastName || b1LastName === p2LastName) {
-    b1LastName = prng.choice(FOREIGN_LAST_NAMES)
-  }
+  const b1LastName = foreignName(prng, usedNames)
   const b1Traits = prng.choice(FOREIGN_BATTER_TRAITS)
   const b1Contact = prng.nextInt(85, 91)
   const b1Power = prng.nextInt(92, 97)
@@ -109,7 +129,7 @@ export function generateForeignCandidates(prng: PRNG, season: number): ForeignCa
     position: prng.choice(['1B', 'OF', '3B'] as Position[]),
     age: prng.nextInt(27, 32),
     salary: prng.nextInt(16, 22), // 16~22억원
-    previousTeam: '도미니카 윈터리그 홈런왕',
+    previousTeam: prng.choice(PREVIOUS_TEAMS),
     scoutSummary: '타구 속도 175km를 가볍게 넘기는 타고난 파워 히터. 잠실에서도 장외 홈런을 때려낼 수 있는 거포.',
     isPitcher: false,
     batterStats: {
@@ -126,10 +146,7 @@ export function generateForeignCandidates(prng: PRNG, season: number): ForeignCa
   })
 
   // 4. 호타준족형 외야수/내야수 (OF/2B/SS)
-  let b2LastName = prng.choice(FOREIGN_LAST_NAMES)
-  while (b2LastName === p1LastName || b2LastName === p2LastName || b2LastName === b1LastName) {
-    b2LastName = prng.choice(FOREIGN_LAST_NAMES)
-  }
+  const b2LastName = foreignName(prng, usedNames)
   const b2Contact = prng.nextInt(89, 94)
   const b2Power = prng.nextInt(82, 88)
   const b2Ovr = Math.round((b2Contact * 0.55) + (b2Power * 0.45))
@@ -139,7 +156,7 @@ export function generateForeignCandidates(prng: PRNG, season: number): ForeignCa
     position: prng.choice(['OF', 'SS', '2B'] as Position[]),
     age: prng.nextInt(26, 31),
     salary: prng.nextInt(13, 17),
-    previousTeam: 'MLB AAA 올스타 외야수',
+    previousTeam: prng.choice(PREVIOUS_TEAMS),
     scoutSummary: '3할 타율을 기대할 수 있는 스프레이 히터이자 넓은 수비 범위를 자랑하는 5툴 플레이어.',
     isPitcher: false,
     batterStats: {
@@ -213,16 +230,88 @@ export function generateForeignCandidates(prng: PRNG, season: number): ForeignCa
     country: a2Country
   })
 
+  // 7. 즉시전력 불펜/마무리 — 해마다 선발 일변도인 시장에 변주를 준다.
+  const reliefName = foreignName(prng, usedNames)
+  const reliefStuff = prng.nextInt(88, 95)
+  const reliefControl = prng.nextInt(82, 91)
+  candidates.push({
+    id: `foreign_reliever_${season}_${prng.nextInt(100, 999)}`,
+    name: reliefName,
+    position: prng.choice(['RP', 'CP'] as Position[]),
+    age: prng.nextInt(27, 35),
+    salary: prng.nextInt(8, 15),
+    previousTeam: prng.choice(PREVIOUS_TEAMS),
+    scoutSummary: prng.choice([
+      '짧은 이닝에는 157km까지 끌어올리는 파워 암. 주자가 있을 때 구위가 더 강해지는 불펜 승부사.',
+      '좌우 타자를 가리지 않는 고속 슬라이더가 주무기. 8회와 9회를 모두 맡길 수 있는 베테랑.',
+      '독특한 팔 각도와 투심으로 땅볼을 양산한다. 연투 능력까지 검증된 계산 가능한 불펜 카드.'
+    ]),
+    isPitcher: true,
+    pitcherStats: {
+      stuff: reliefStuff,
+      control: reliefControl,
+      breaking: prng.nextInt(86, 94),
+      clutch: prng.nextInt(88, 96),
+      stamina: prng.nextInt(68, 80)
+    },
+    overall: Math.round(reliefStuff * 0.55 + reliefControl * 0.45),
+    traits: prng.choice([
+      ['강심장 마무리', '연투 가능', '고속 슬라이더'],
+      ['좌타 킬러', '땅볼 유도', '불펜 에이스'],
+      ['파이어맨', '위기관리', '157km 강속구']
+    ]),
+    country: prng.choice(['미국', '도미니카', '베네수엘라', '쿠바'])
+  })
+
+  // 8. 포지션 희소성이 높은 포수/유틸리티 자원
+  const utilityName = foreignName(prng, usedNames)
+  const utilityContact = prng.nextInt(82, 91)
+  const utilityPower = prng.nextInt(80, 91)
+  const utilityPosition = prng.choice(['C', '2B', '3B', 'DH'] as Position[])
+  candidates.push({
+    id: `foreign_utility_${season}_${prng.nextInt(100, 999)}`,
+    name: utilityName,
+    position: utilityPosition,
+    age: prng.nextInt(26, 34),
+    salary: prng.nextInt(9, 17),
+    previousTeam: prng.choice(PREVIOUS_TEAMS),
+    scoutSummary: utilityPosition === 'C'
+      ? '투수 리드와 프레이밍이 뛰어난 공격형 포수. 외국인 투수와의 소통에도 강점이 있다는 평가.'
+      : '내야 전 포지션을 소화하면서 장타까지 기대할 수 있는 멀티 플레이어. 엔트리 운용의 폭을 넓혀준다.',
+    isPitcher: false,
+    batterStats: {
+      contact: utilityContact,
+      power: utilityPower,
+      eye: prng.nextInt(80, 91),
+      speed: prng.nextInt(65, 86),
+      defense: prng.nextInt(84, 94),
+      stamina: prng.nextInt(82, 91)
+    },
+    overall: Math.round(utilityContact * 0.52 + utilityPower * 0.48),
+    traits: utilityPosition === 'C'
+      ? ['공격형 포수', '프레이밍 장인', '투수 리드']
+      : ['슈퍼 유틸리티', '멀티 포지션', '클러치 히터'],
+    country: prng.choice(['미국', '도미니카', '푸에르토리코', '멕시코'])
+  })
+
   return candidates
 }
 
-export function generateRookieProspects(prng: PRNG, season: number, rebuildStack = 0): RookieProspect[] {
+export function generateRookieProspects(prng: PRNG, season: number, rebuildStack = 0, excludedNames: string[] = []): RookieProspect[] {
   const prospects: RookieProspect[] = []
+  const usedRookieNames = new Set(excludedNames)
   const statBoost = Math.min(5, rebuildStack * 2)
   const bonusDiscount = Math.min(3, rebuildStack)
+  const rookieName = () => {
+    let name = ''
+    do name = `${prng.choice(KOREAN_SURNAMES)}${prng.choice(KOREAN_FIRST_NAMES)}`
+    while (usedRookieNames.has(name))
+    usedRookieNames.add(name)
+    return name
+  }
 
   // 1. 전체 1순위급 초고교급 파이어볼러 (SP)
-  const p1Name = `${prng.choice(KOREAN_SURNAMES)}${prng.choice(KOREAN_FIRST_NAMES)}`
+  const p1Name = rookieName()
   const p1School = prng.choice(HIGH_SCHOOLS)
   const p1Stuff = prng.nextInt(82, 87) + statBoost
   const p1Control = prng.nextInt(74, 80) + statBoost
@@ -250,10 +339,7 @@ export function generateRookieProspects(prng: PRNG, season: number, rebuildStack
   })
 
   // 2. 대학 최고의 대형 내야수/포수 (즉시전력감)
-  let p2Name = `${prng.choice(KOREAN_SURNAMES)}${prng.choice(KOREAN_FIRST_NAMES)}`
-  while (p2Name === p1Name) {
-    p2Name = `${prng.choice(KOREAN_SURNAMES)}${prng.choice(KOREAN_FIRST_NAMES)}`
-  }
+  const p2Name = rookieName()
   const p2School = prng.choice(UNIVERSITIES)
   const p2Pos = prng.choice(['SS', 'C', '3B'] as Position[])
   const p2Contact = prng.nextInt(78, 83) + statBoost
@@ -283,10 +369,7 @@ export function generateRookieProspects(prng: PRNG, season: number, rebuildStack
   })
 
   // 3. 고교 5툴 포텐셜 외야수 (가성비 육성형)
-  let p3Name = `${prng.choice(KOREAN_SURNAMES)}${prng.choice(KOREAN_FIRST_NAMES)}`
-  while (p3Name === p1Name || p3Name === p2Name) {
-    p3Name = `${prng.choice(KOREAN_SURNAMES)}${prng.choice(KOREAN_FIRST_NAMES)}`
-  }
+  const p3Name = rookieName()
   const p3School = prng.choice(HIGH_SCHOOLS)
   const p3Contact = prng.nextInt(72, 78) + statBoost
   const p3Power = prng.nextInt(74, 80) + statBoost
@@ -313,17 +396,14 @@ export function generateRookieProspects(prng: PRNG, season: number, rebuildStack
   })
 
   // 4. 2군 육성선수 / 신고선수 발굴 (계약금 0원 - 예산 부족 시에도 상시 지명 가능)
-  let p4Name = `${prng.choice(KOREAN_SURNAMES)}${prng.choice(KOREAN_FIRST_NAMES)}`
-  while (p4Name === p1Name || p4Name === p2Name || p4Name === p3Name) {
-    p4Name = `${prng.choice(KOREAN_SURNAMES)}${prng.choice(KOREAN_FIRST_NAMES)}`
-  }
+  const p4Name = rookieName()
   const p4School = prng.choice(UNIVERSITIES)
   const p4Contact = prng.nextInt(68, 74) + statBoost
   const p4Power = prng.nextInt(66, 73) + statBoost
   prospects.push({
     id: `rookie_${season}_4_dev`,
     name: p4Name,
-    position: prng.choice(['C', '2B', 'OF', 'RP'] as Position[]),
+    position: prng.choice(['C', '2B', 'OF', '1B'] as Position[]),
     age: 23,
     school: `${p4School} (육성선수)`,
     signingBonus: 0,
@@ -340,6 +420,61 @@ export function generateRookieProspects(prng: PRNG, season: number, rebuildStack
     overall: Math.round((p4Contact + p4Power) / 2),
     potential: 'B',
     traits: ['육성선수 신화', '악바리 근성', '0원 계약']
+  })
+
+  // 5. 변화구 완성도가 높은 대학 불펜
+  const p5Name = rookieName()
+  const p5Stuff = prng.nextInt(76, 84) + statBoost
+  const p5Control = prng.nextInt(80, 87) + statBoost
+  prospects.push({
+    id: `rookie_${season}_5_bullpen`,
+    name: p5Name,
+    position: prng.choice(['RP', 'CP'] as Position[]),
+    age: 23,
+    school: prng.choice(UNIVERSITIES),
+    signingBonus: Math.max(1, 4 - bonusDiscount),
+    scoutSummary: prng.choice([
+      '대학 무대 통산 볼넷 비율 4%의 제구형 불펜. 빠른 1군 적응이 기대되는 안전한 지명.',
+      '짧은 이닝에 구속이 급상승하는 사이드암. 위기에서 과감하게 몸쪽 승부를 즐긴다.',
+      '완성도 높은 슬라이더와 체인지업을 갖춘 좌완 불펜. 좌타 상대 스페셜리스트로 즉시 활용 가능.'
+    ]),
+    isPitcher: true,
+    pitcherStats: {
+      stuff: p5Stuff,
+      control: p5Control,
+      breaking: prng.nextInt(82, 90) + statBoost,
+      clutch: prng.nextInt(79, 88),
+      stamina: prng.nextInt(70, 80)
+    },
+    overall: Math.round((p5Stuff + p5Control) / 2),
+    potential: rebuildStack >= 2 ? 'A+' : 'A',
+    traits: ['대학 최고 불펜', '즉시 전력감', '결정구 보유']
+  })
+
+  // 6. 스카우트 평가가 엇갈리는 고위험·고보상 원석
+  const p6Name = rookieName()
+  const p6Contact = prng.nextInt(67, 77) + statBoost
+  const p6Power = prng.nextInt(82, 91) + statBoost
+  prospects.push({
+    id: `rookie_${season}_6_lottery`,
+    name: p6Name,
+    position: prng.choice(['C', '1B', '3B', 'OF'] as Position[]),
+    age: 19,
+    school: prng.choice(HIGH_SCHOOLS),
+    signingBonus: Math.max(1, 3 - bonusDiscount),
+    scoutSummary: '삼진이 많아 평가가 극명하게 갈리지만 배트에 맞으면 구장이 좁아 보이는 원석. 육성 성공 시 리그를 대표할 거포가 될 수 있다.',
+    isPitcher: false,
+    batterStats: {
+      contact: p6Contact,
+      power: p6Power,
+      eye: prng.nextInt(65, 76),
+      speed: prng.nextInt(62, 79),
+      defense: prng.nextInt(66, 81),
+      stamina: prng.nextInt(79, 88)
+    },
+    overall: Math.round(p6Contact * 0.4 + p6Power * 0.6),
+    potential: rebuildStack >= 1 ? 'A+' : 'A',
+    traits: ['로또 픽', '괴력의 거포', '높은 변동성']
   })
 
   return prospects

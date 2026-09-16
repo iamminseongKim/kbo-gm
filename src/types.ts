@@ -138,6 +138,15 @@ export interface ForeignCandidate {
   country?: string
 }
 
+export interface TradeOffer {
+  id: string
+  partnerTeamId: string
+  outgoingPlayerId: string
+  incomingPlayerId: string
+  rationale: string
+  urgency: 'BUYER' | 'BALANCED' | 'SELLER'
+}
+
 export interface PostseasonMatch {
   roundName: '와일드카드' | '준플레이오프' | '플레이오프' | '한국시리즈'
   team1Id: string
@@ -167,8 +176,11 @@ export type GamePhase =
   | 'STOVE_LEAGUE'
   | 'PRESEASON'
   | 'FIRST_HALF_EVENTS'
+  | 'MIDSEASON_REPORT'
+  | 'FOREIGN_REPLACEMENT'
   | 'CALLUP_DECISION'
   | 'ROOKIE_DRAFT'
+  | 'TRADE_DEADLINE'
   | 'SECOND_HALF_EVENTS'
   | 'CLUTCH_MATCH'
   | 'PENNANT_RACE'

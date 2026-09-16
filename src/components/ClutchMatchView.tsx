@@ -10,7 +10,7 @@ interface ClutchMatchViewProps {
   onFinishClutchMatch: (isVictory: boolean, outcomeDesc: string) => void
 }
 
-type TacticType = 'PINCH_HITTER' | 'PINCH_RUNNER' | 'BUNT' | 'PITCHER_CHANGE' | 'INTENTIONAL_WALK'
+type TacticType = 'PINCH_HITTER' | 'PINCH_RUNNER' | 'BUNT' | 'HIT_AND_RUN' | 'CONTACT_SWING'
 
 interface TacticOption {
   type: TacticType
@@ -37,36 +37,36 @@ const TACTIC_OPTIONS: TacticOption[] = [
     icon: '🏃',
     title: '대주자(Pinch Runner) & 기습 도루',
     subtitle: '발 빠른 스피드스타의 허를 찌르는 주루',
-    description: '1루의 둔한 주자를 빼고 전문 대주자를 투입하여, 상대 배터리의 방심을 틈타 2루/3루 기습 도루를 감행합니다.',
+    description: '2루의 둔한 주자를 전문 대주자로 교체합니다. 단타에도 동점 주자가 홈을 밟을 수 있도록 리드를 크게 가져갑니다.',
     riskReward: '단숨에 득점권 찬스 창출 vs 도루 저사 횡사 위험',
     successRate: 64
   },
   {
     type: 'BUNT',
     icon: '🎯',
-    title: '희생 번트(Sacrifice Bunt) 작전',
-    subtitle: '확실한 스몰볼로 주자 득점권 이동',
-    description: '타자에게 안전한 희생 번트를 지시하여 아웃카운트 하나와 주자의 진루를 맞바꿔 1사 2,3루 찬스를 만듭니다.',
-    riskReward: '가장 높은 성공률(80%+) vs 잔루 발생 가능성',
-    successRate: 78
+    title: '희생 번트(Sacrifice Bunt)',
+    subtitle: '동점과 역전 주자를 모두 득점권으로',
+    description: '1사 1·2루에서 아웃 하나를 주고 두 주자를 진루시킵니다. 성공해도 2사 2·3루가 되므로 다음 타자의 적시타가 반드시 필요합니다.',
+    riskReward: '주자 진루는 안정적 vs 2아웃 이후 단 한 번의 승부',
+    successRate: 70
   },
   {
-    type: 'PITCHER_CHANGE',
-    icon: '🛡️',
-    title: '투수 교체 & 수호신 전격 조기 등판',
-    subtitle: '155km 돌직구 마무리 투수로 승부 봉쇄',
-    description: '흔들리는 선발/불펜을 즉시 내리고 팀의 가장 강력한 클로저를 조기 등판시켜 위기를 삼진으로 잠재웁니다.',
-    riskReward: '압도적인 구위로 탈삼진 vs 연투 피로도 위험',
-    successRate: 68
+    type: 'HIT_AND_RUN',
+    icon: '⚡',
+    title: '히트 앤드 런(Hit and Run)',
+    subtitle: '주자를 움직여 수비 시프트를 흔드는 승부수',
+    description: '투구와 동시에 두 주자를 출발시키고 타자에게 반드시 인플레이 타구를 주문합니다. 내야가 움직인 빈 공간을 노립니다.',
+    riskReward: '단타에도 동점 가능 vs 헛스윙 시 병살보다 치명적인 주루사',
+    successRate: 54
   },
   {
-    type: 'INTENTIONAL_WALK',
-    icon: '🚫',
-    title: '자동 고의사구(Intentional Walk) 만루 작전',
-    subtitle: '상대 4번 타자를 거르고 병살타 유도',
-    description: '폭발적인 상대 간판 슬러거와의 정면 승부를 피하고 만루를 채운 뒤, 6-4-3 내야 땅볼 병살타를 노립니다.',
-    riskReward: '수비 포스 아웃 용이 vs 밀어내기 실점 압박',
-    successRate: 62
+    type: 'CONTACT_SWING',
+    icon: '🎯',
+    title: '강공 유지 & 컨택 스윙',
+    subtitle: '작전 없이 타자의 타격 능력을 믿는다',
+    description: '도루나 번트 사인 없이 타자에게 스트라이크 존을 좁혀 치게 합니다. 가장 정석적이지만 병살 위험이 남습니다.',
+    riskReward: '장타와 끝내기 가능 vs 내야 땅볼 병살 위험',
+    successRate: 61
   }
 ]
 
@@ -85,10 +85,9 @@ export const ClutchMatchView: React.FC<ClutchMatchViewProps> = ({
     commentary: string[]
   } | null>(null)
 
-  // 우리 팀의 에이스/거포/클로저 찾기
+  // 공격 상황에 필요한 우리 팀의 최고 타자 찾기
   const teamPlayers = players.filter(p => p.teamId === userTeam.id)
   const bestBatter = teamPlayers.filter(p => !p.isPitcher).sort((a, b) => b.overall - a.overall)[0]
-  const bestPitcher = teamPlayers.filter(p => p.isPitcher).sort((a, b) => b.overall - a.overall)[0]
 
   // 작전 실행
   const handleExecuteTactic = () => {
@@ -118,67 +117,71 @@ export const ClutchMatchView: React.FC<ClutchMatchViewProps> = ({
           headline = `💧 [대타 범타] 날카로운 삼진 아웃... 찬스 무산`
           commentary = [
             `상대 투수의 152km 몸쪽 꽉 찬 하이 패스트볼에 헛스윙 삼진!`,
-            `대타 카드가 무위로 돌아가며 아쉽게 이닝이 종료됩니다.`
+            `2사가 된 뒤 후속 타자마저 중견수 뜬공으로 물러나며 경기가 종료됩니다.`
           ]
         }
       } else if (selectedTactic.type === 'PINCH_RUNNER') {
         if (isSuccess) {
-          headline = `⚡ [대주자 대성공!] 기습 3루 도루 성공 & 상대 포수 송구 실책으로 홈인!!`
+          headline = `⚡ [대주자 적중!] 짧은 안타에 2루에서 홈까지 파고들어 동점!!`
           commentary = [
-            `투수의 투구 동작이 시작되자마자 2루 주자가 번개처럼 스타트를 끊었습니다!`,
-            `포수가 급하게 3루로 송구하지만 완벽한 헤드퍼스트 슬라이딩 세이프!!`,
-            `송구가 외야로 빠진 틈을 타 대주자가 홈까지 질주하여 득점에 성공합니다!`
+            `대주자가 타구 판단과 동시에 스타트를 끊었습니다!`,
+            `중견수 앞에 떨어진 짧은 안타지만 3루 코치가 거침없이 팔을 돌립니다!`,
+            `홈에서 승부... 절묘하게 포수의 태그를 피해 세이프! 이어진 송구 실책으로 1루 주자까지 홈인합니다!`
           ]
         } else {
-          headline = `❌ [도루 저사] 상대 배터리의 피치아웃에 걸려 태그 아웃!`
+          headline = `❌ [주루사] 무리한 홈 승부, 포수의 정확한 태그에 아웃!`
           commentary = [
-            `상대 벤치에서 도루를 정확히 간파하고 피치아웃을 지시했습니다!`,
-            `2루에서 억울하게 태그아웃되며 공격의 흐름이 끊깁니다.`
+            `짧은 안타에 대주자가 3루를 돌아 홈까지 파고듭니다!`,
+            `하지만 상대 중견수의 정확한 송구가 먼저 도착하며 홈에서 태그 아웃, 2사가 됩니다.`,
+            `후속 타자의 잘 맞은 타구도 우익수 정면으로 향하며 경기가 끝납니다.`
           ]
         }
       } else if (selectedTactic.type === 'BUNT') {
         if (isSuccess) {
-          headline = `🎯 [번트 완벽 성공!] 3루 라인 타고 흐르는 절묘한 희생 번트!`
+          headline = `🎯 [번트 성공!] 2사 2·3루에서 후속 타자의 끝내기 안타!!`
           commentary = [
             `초구 투수 앞에 부드럽게 떨군 완벽한 롤링 번트!`,
-            `1루에 타자가 던져지는 사이 1, 2루 주자가 모두 안전하게 득점권 진루 성공!`,
-            `이어지는 후속 타자의 희생 플라이로 천금 같은 결승점을 뽑아냅니다!`
+            `타자 주자가 1루에서 아웃되는 사이 두 주자가 진루해 2사 2·3루가 됩니다.`,
+            `후속 타자가 2스트라이크에서 우전 적시타! 두 주자가 모두 홈을 밟으며 경기를 끝냅니다!`
           ]
         } else {
-          headline = `⚠️ [번트 실패] 타구가 투수 정면으로 향하며 3루 포스 아웃`
+          headline = `⚠️ [번트 실패] 선행 주자 3루 포스 아웃, 2사 1·2루`
           commentary = [
             `번트 타구가 너무 강하게 투수 정면으로 굴러갔습니다!`,
-            `투수가 빠르게 3루로 송구하여 2루 주자가 3루에서 포스 아웃됩니다.`
+            `투수가 빠르게 3루로 송구하여 2루 주자가 3루에서 포스 아웃됩니다.`,
+            `2사 1·2루에서 후속 타자가 삼진으로 물러나며 마지막 기회가 무산됩니다.`
           ]
         }
-      } else if (selectedTactic.type === 'PITCHER_CHANGE') {
+      } else if (selectedTactic.type === 'HIT_AND_RUN') {
         if (isSuccess) {
-          headline = `🔥 [수호신 등판 성공!] ${bestPitcher?.name || '마무리 투수'}의 3타자 연속 K-K-K 클로징!!`
+          headline = `🔥 [히트 앤드 런 적중!] 비어 있는 2루 베이스 옆을 꿰뚫는 끝내기 안타!!`
           commentary = [
-            `마운드에 오른 수호신이 155km 묵직한 돌직구로 상대 4번 타자를 헛스윙 삼진 처리합니다!`,
-            `이어지는 타자마저 예리한 명품 슬라이더로 3구 삼진!`,
-            `포효하는 마무리 투수! 짜릿한 1점차 승리를 완벽하게 지켜냅니다!`
+            `두 주자가 동시에 스타트를 끊자 2루수와 유격수가 베이스 커버를 들어갑니다!`,
+            `타구가 비어 버린 2루수 자리로 빠져나갑니다! 2루 주자에 이어 1루 주자까지 홈으로!`,
+            `과감한 작전이 만든 짜릿한 끝내기 역전승입니다!`
           ]
         } else {
-          headline = `⚡ [혈투] 빗맞은 바가지 안타를 허용하며 동점 헌납`
+          headline = `💧 [작전 실패] 타자 헛스윙, 2루 주자 3루에서 태그 아웃`
           commentary = [
-            `완벽하게 먹힌 타구였으나 빗맞아 1루수와 우익수 사이에 떨어지는 행운의 안타가 됩니다.`,
-            `아쉽게 승리를 지키지 못하고 경기는 팽팽한 연장으로 이어집니다.`
+            `바깥쪽 변화구에 배트가 허공을 가르고 두 주자는 이미 스타트를 끊었습니다.`,
+            `포수의 3루 송구가 정확히 도착하며 동점 주자가 태그 아웃, 2사가 됩니다.`,
+            `이어진 풀카운트 승부에서 다시 헛스윙 삼진, 경기가 그대로 끝납니다.`
           ]
         }
       } else {
-        // INTENTIONAL_WALK
+        // CONTACT_SWING
         if (isSuccess) {
-          headline = `🧠 [고의사구 적중!] 그림 같은 6-4-3 내야 땅볼 병살타 완성!!`
+          headline = `🧠 [정면 승부 적중!] ${bestBatter?.name || '주전 타자'}의 우중간 끝내기 2루타!!`
           commentary = [
-            `만루를 채운 벤치의 승부수가 완벽하게 적중했습니다!`,
-            `낮게 제구된 싱커볼에 상대 5번 타자의 방망이가 덜컥 걸렸습니다!`,
-            `유격수 포구 -> 2루수 토스 -> 1루 송구 아웃! 깔끔한 6-4-3 더블플레이로 경기 종료!!`
+            `볼카운트 2-1, 타자가 가운데 낮은 실투를 놓치지 않습니다!`,
+            `타구가 우중간을 완전히 가르며 2루 주자와 1루 주자가 차례로 홈을 밟습니다!`,
+            `작전 없이 타자의 능력을 믿은 벤치의 선택이 적중했습니다!`
           ]
         } else {
-          headline = `⚠️ [밀어내기 위기] 풀카운트 승부 끝 밀어내기 볼넷 허용`
+          headline = `⚠️ [병살타] 유격수 정면 땅볼, 6-4-3으로 경기 종료`
           commentary = [
-            `만루의 중압감 속에 제구가 흔들리며 풀카운트 끝에 아쉬운 밀어내기 볼넷을 내줍니다.`
+            `초구 싱커를 잡아당겼지만 타구가 유격수 정면으로 향합니다.`,
+            `유격수에서 2루수, 다시 1루수로 이어지는 병살타로 마지막 기회가 사라집니다.`
           ]
         }
       }
@@ -205,11 +208,11 @@ export const ClutchMatchView: React.FC<ClutchMatchViewProps> = ({
           Mid-Season Clutch Tactical Command · {2025 + season}
         </span>
         <h2 className="text-2xl font-bold tracking-tight text-neutral-900 dark:text-white mt-1">
-          ⚡ 9회말 승부처: 현장 작전 지휘
+          ⚡ 9회말 공격: 끝내기 작전 지휘
         </h2>
         <p className="text-xs sm:text-sm text-neutral-600 dark:text-neutral-400 mt-1 max-w-xl mx-auto">
-          페넌트레이스 순위를 좌우할 운명의 1점차 승부처 경기입니다. 
-          더그아웃의 최고 사령탑으로서 <b>대타, 대주자, 번트, 투수교체</b> 등 결정적인 승부수를 던지십시오!
+          1점 뒤진 9회말, 1사 1·2루입니다. 지금은 <b>우리 팀의 공격 상황</b>입니다.
+          대타, 대주자, 번트, 히트 앤드 런 또는 강공 중 하나를 지시하십시오.
         </p>
       </div>
 
@@ -223,7 +226,7 @@ export const ClutchMatchView: React.FC<ClutchMatchViewProps> = ({
             />
             <div>
               <div className="text-xs text-neutral-400 font-mono">2026 KBO 정규리그 승부처 라이벌전</div>
-              <div className="text-lg font-bold tracking-tight">{userTeam.name} vs 라이벌 구단</div>
+              <div className="text-lg font-bold tracking-tight">라이벌 구단 <span className="text-neutral-500">vs</span> {userTeam.name}</div>
             </div>
           </div>
 
@@ -233,8 +236,8 @@ export const ClutchMatchView: React.FC<ClutchMatchViewProps> = ({
               <div className="text-sm font-bold text-amber-400">9회말</div>
             </div>
             <div className="text-center border-l border-white/10 pl-4">
-              <div className="text-[10px] text-neutral-400">SCORE</div>
-              <div className="text-sm font-bold text-white">4 : 5 (1점차)</div>
+              <div className="text-[10px] text-neutral-400">AWAY : HOME</div>
+              <div className="text-sm font-bold text-white">5 : 4 <span className="text-rose-400">(-1)</span></div>
             </div>
             <div className="text-center border-l border-white/10 pl-4">
               <div className="text-[10px] text-neutral-400">OUT</div>
@@ -270,7 +273,7 @@ export const ClutchMatchView: React.FC<ClutchMatchViewProps> = ({
               <span className="font-bold text-white">1사 주자 1, 2루 역전 찬스!</span>
             </div>
             <p className="text-neutral-400 leading-relaxed text-[11px]">
-              안타 하나면 동점, 장타면 그대로 끝내기 역전승이 가능한 절체절명의 찬스입니다.
+              2루 주자가 동점 주자, 1루 주자가 끝내기 주자입니다. 단타 하나면 동점, 장타면 그대로 역전승이 가능합니다.
               단장의 전술 지시 하나에 팀의 운명이 걸려 있습니다.
             </p>
           </div>
@@ -286,7 +289,7 @@ export const ClutchMatchView: React.FC<ClutchMatchViewProps> = ({
                 ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300'
                 : 'bg-red-100 text-red-800 dark:bg-red-950/60 dark:text-red-300'
             }`}>
-              {outcome.isVictory ? '승리 달성! (+3승 모멘텀)' : '석패 (작전 불발)'}
+              {outcome.isVictory ? '승리 달성! (후반기 모멘텀 상승)' : '석패 (작전 불발)'}
             </span>
             <h3 className="text-lg font-bold text-neutral-900 dark:text-white tracking-tight pt-1">
               {outcome.headline}
@@ -305,7 +308,7 @@ export const ClutchMatchView: React.FC<ClutchMatchViewProps> = ({
           <div className="p-3 rounded-2xl bg-neutral-100 dark:bg-white/[0.04] text-xs flex items-center justify-between">
             <span className="text-neutral-600 dark:text-neutral-400">경기 결과 반영:</span>
             <span className="font-bold text-neutral-900 dark:text-white">
-              {outcome.isVictory ? '페넌트레이스 +3승 & 케미스트리 +8 & 팬심 +10' : '페넌트레이스 패배 기록'}
+              {outcome.isVictory ? '팀 전력 모멘텀 +1.5 & 케미스트리 +8 & 팬심 +10' : '페넌트레이스 패배 기록'}
             </span>
           </div>
 
@@ -321,7 +324,7 @@ export const ClutchMatchView: React.FC<ClutchMatchViewProps> = ({
         <div className="space-y-3">
           <div className="flex items-center justify-between px-1">
             <span className="text-xs font-bold text-neutral-900 dark:text-white uppercase tracking-wider">
-              더그아웃 전술 선택 (택 1)
+              공격 전술 선택 (택 1)
             </span>
             <span className="text-xs text-neutral-500">
               구단 케미스트리: {userTeam.chemistry}점 (성공률 보정 적용)

@@ -20,27 +20,29 @@ export function calculateTeamPower(
   let avgPitcherPower = 78
   
   if (teamPlayers.length > 0) {
+    // 부상 선수는 엔트리에는 남지만 실제 전력 계산에서는 대체선수 수준으로 하락한다.
+    const effectiveOverall = (player: Player) => player.overall + (player.formDelta || 0) - (player.isInjured ? 12 : 0)
     const batters = teamPlayers.filter(p => !p.isPitcher)
     const pitchers = teamPlayers.filter(p => p.isPitcher)
     
     if (batters.length > 0) {
-      avgBatterPower = batters.reduce((acc, b) => acc + (b.overall + (b.formDelta || 0)), 0) / batters.length
+      avgBatterPower = batters.reduce((acc, b) => acc + effectiveOverall(b), 0) / batters.length
     }
     if (pitchers.length > 0) {
-      avgPitcherPower = pitchers.reduce((acc, p) => acc + (p.overall + (p.formDelta || 0)), 0) / pitchers.length
+      avgPitcherPower = pitchers.reduce((acc, p) => acc + effectiveOverall(p), 0) / pitchers.length
     }
   }
 
   // 윈나우 vs 리빌딩 기조 보정
   let stanceDelta = 0
   if (team.stance === 'WIN_NOW') {
-    stanceDelta = 4 // 윈나우: 즉각적 전력 극대화로 우승 확률 상승
+    stanceDelta = 2 // 즉각적인 도움은 주지만 우승을 보장하지는 않음
   } else if (team.stance === 'REBUILDING') {
-    stanceDelta = -4 // 리빌딩: 유망주 출전 기회 보장으로 당해 승률 희생
+    stanceDelta = -3 // 리빌딩: 유망주 출전 기회 보장으로 당해 승률 희생
   }
 
   // 케미스트리 및 팀 보정
-  const chemistryBonus = (team.chemistry - 80) * 0.15
+  const chemistryBonus = (team.chemistry - 80) * 0.08
   let batting = avgBatterPower + chemistryBonus + modifierDelta + stanceDelta
   let pitching = avgPitcherPower + chemistryBonus + modifierDelta + stanceDelta
 
@@ -71,13 +73,20 @@ export function simulatePennantRace(
   prng: PRNG,
   environment?: EnvironmentCard,
   userModifierDelta = 0,
-  userTeamId = ''
+  userTeamId = '',
+  season = 1,
+  gamesPerOpponent = 16
 ): StandingsRecord[] {
   const teamList = Object.values(teams)
   const powerMap: Record<string, TeamPower> = {}
 
   teamList.forEach(t => {
-    const mod = (t.id === userTeamId) ? userModifierDelta : 0
+    // 선택 보너스는 의미가 있되 선수 한 명 이상의 격차를 만들지 않도록 제한한다.
+    // 첫 시즌은 신임 단장의 시행착오와 프런트 적응 기간을 반영한다.
+    const rookieGmPenalty = t.id === userTeamId && season === 1 ? -3.5 : 0
+    const mod = t.id === userTeamId
+      ? Math.max(-6, Math.min(6, userModifierDelta * 0.65)) + rookieGmPenalty
+      : 0
     powerMap[t.id] = calculateTeamPower(t, rosters, environment, mod)
   })
 
@@ -101,7 +110,7 @@ export function simulatePennantRace(
       const powerA = powerMap[teamA.id]
       const powerB = powerMap[teamB.id]
 
-      for (let game = 0; game < 16; game++) {
+      for (let game = 0; game < gamesPerOpponent; game++) {
         // 홈/원정
         const isAHome = game % 2 === 0
         const homeAdvantage = 1.05

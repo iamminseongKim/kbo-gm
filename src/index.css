@@ -12,6 +12,76 @@
   }
 }
 
+:root { color-scheme: dark; }
+.light { color-scheme: light; }
+
+.game-shell {
+  position: relative;
+  isolation: isolate;
+  background:
+    radial-gradient(circle at 50% -20%, rgba(220, 38, 38, .16), transparent 32rem),
+    linear-gradient(180deg, #09090b 0%, #030303 70%);
+}
+.game-shell::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: -1;
+  opacity: .16;
+  background-image: linear-gradient(rgba(255,255,255,.035) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.035) 1px, transparent 1px);
+  background-size: 44px 44px;
+  mask-image: linear-gradient(to bottom, black, transparent 75%);
+}
+.light.game-shell {
+  background: radial-gradient(circle at 50% -20%, rgba(220,38,38,.09), transparent 32rem), #f4f3ef;
+}
+.top-command-bar {
+  background: rgba(12,12,14,.8);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(255,255,255,.08);
+  border-radius: 22px;
+  box-shadow: 0 18px 60px rgba(0,0,0,.22);
+}
+.light .top-command-bar { background: rgba(255,255,255,.76); border-color: rgba(0,0,0,.08); }
+.brand-ball { background: #fff; color: #111; border: 3px solid #e5e5e5; }
+.brand-ball::after { content: ''; position: absolute; }
+.team-hero {
+  background: linear-gradient(135deg, rgba(255,255,255,.065), rgba(255,255,255,.015));
+  border: 1px solid rgba(255,255,255,.08);
+  position: relative;
+  overflow: hidden;
+}
+.team-hero::after { content: '⚾'; position: absolute; right: -18px; bottom: -54px; font-size: 150px; opacity: .055; transform: rotate(-16deg); }
+.light .team-hero { background: rgba(255,255,255,.72); border-color: rgba(0,0,0,.07); }
+.eyebrow-label { font-size: 10px; font-weight: 900; letter-spacing: .18em; color: #dc2626; }
+.team-tile { min-height: 70px; }
+.team-brief { position: relative; overflow: hidden; }
+.team-brief::before { content: ''; position: absolute; inset: 0 auto 0 0; width: 4px; background: var(--team-color); }
+
+.season-progress {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 4px;
+  padding: 0 4px 16px;
+}
+.season-progress__step { display: flex; align-items: center; gap: 6px; min-width: 0; color: #737373; font-size: 10px; font-weight: 700; }
+.season-progress__step::after { content: ''; flex: 1; height: 1px; background: rgba(255,255,255,.1); }
+.season-progress__step:last-child::after { display: none; }
+.season-progress__dot { width: 20px; height: 20px; flex: none; border-radius: 999px; display: grid; place-items: center; border: 1px solid rgba(255,255,255,.12); font: 700 9px ui-monospace, monospace; }
+.season-progress__step.done { color: #a3a3a3; }
+.season-progress__step.done .season-progress__dot { background: #262626; color: #fff; }
+.season-progress__step.active { color: #fff; }
+.season-progress__step.active .season-progress__dot { background: #dc2626; border-color: #ef4444; box-shadow: 0 0 0 4px rgba(220,38,38,.14); }
+.light .season-progress__step.active { color: #111; }
+.light .season-progress__step::after { background: rgba(0,0,0,.1); }
+.light .season-progress__dot { border-color: rgba(0,0,0,.14); }
+@media (max-width: 640px) {
+  .season-progress__label { display: none; }
+  .season-progress__step { gap: 4px; }
+  .team-hero::after { font-size: 110px; }
+}
+
 /* Apple-style translucent glass */
 .apple-glass {
   background: rgba(22, 22, 24, 0.72);
@@ -21,7 +91,7 @@
 }
 
 .apple-card {
-  background: #121214;
+  background: rgba(18, 18, 20, .92);
   border: 1px solid rgba(255, 255, 255, 0.08);
   transition: border-color 0.2s cubic-bezier(0.16, 1, 0.3, 1), transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), background-color 0.2s ease;
 }
@@ -32,7 +102,7 @@
 
 /* Apple-style primary pill button */
 .apple-button-primary {
-  @apply bg-white text-black font-semibold rounded-full py-3 px-6 transition-all duration-200 active:scale-[0.98] hover:bg-[#e8e8ed] shadow-sm;
+  @apply bg-white text-black font-bold rounded-xl py-3 px-6 transition-all duration-200 active:scale-[0.98] hover:bg-[#e8e8ed] shadow-sm;
 }
 
 .apple-button-secondary {

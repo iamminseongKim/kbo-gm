@@ -17,6 +17,20 @@ export const TeamSelectView: React.FC<TeamSelectViewProps> = ({
   const teams = Object.values(KBO_TEAMS)
   const currentTeam = KBO_TEAMS[selectedId]
 
+  const getTeamProfile = (team: typeof currentTeam) => {
+    const strengths = [
+      { label: '전력 안정성', value: Math.round((team.chemistry + team.ownerTrust) / 2) },
+      { label: '성장 여력', value: team.farmSystem },
+      { label: '프런트 압박', value: team.fanSupport }
+    ]
+    const mission = team.difficulty === '쉬움'
+      ? '즉시 우승에 도전해 왕조의 문을 여세요.'
+      : team.difficulty === '보통'
+      ? '가을야구와 세대교체를 동시에 잡으세요.'
+      : '제한된 자원으로 판도를 뒤집는 리빌딩이 필요합니다.'
+    return { strengths, mission }
+  }
+
   useEffect(() => {
     if (onPreviewTeam) {
       onPreviewTeam(selectedId)
@@ -31,18 +45,21 @@ export const TeamSelectView: React.FC<TeamSelectViewProps> = ({
   }
 
   return (
-    <div className="flex-1 flex flex-col p-4 sm:p-6 space-y-6 overflow-y-auto animate-fade-in">
+    <div className="flex-1 flex flex-col p-3 sm:p-6 space-y-6 overflow-y-auto animate-fade-in">
       {/* Apple-style Hero Title */}
-      <div className="text-center pt-2 pb-1">
-        <span className="text-[11px] font-semibold text-neutral-500 dark:text-neutral-400 tracking-wider uppercase">
-          2026 KBO General Manager
+      <div className="team-hero text-left pt-5 sm:pt-8 pb-5 px-5 sm:px-7 rounded-[28px]">
+        <span className="eyebrow-label">
+          NEW CAREER · 7 SEASONS
         </span>
-        <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-neutral-900 dark:text-white mt-1">
-          부임할 구단을 선택하십시오.
+        <h1 className="text-3xl sm:text-5xl font-black tracking-[-0.055em] text-neutral-900 dark:text-white mt-3 leading-[1.04]">
+          당신의 야구는<br /><span className="text-red-600 dark:text-red-500">어떤 팀</span>에서 시작됩니까?
         </h1>
-        <p className="text-xs sm:text-sm text-neutral-600 dark:text-neutral-400 mt-1 max-w-sm mx-auto font-normal">
-          7시즌의 여정. 144경기의 치열한 페넌트레이스. 가을의 전설에 도전하세요.
+        <p className="text-xs sm:text-sm text-neutral-600 dark:text-neutral-400 mt-4 max-w-lg font-medium leading-relaxed">
+          매년 단 한 번의 선택이 144경기의 운명을 바꿉니다. 전력을 읽고, 리스크를 감수하고, 7년 안에 우승 반지를 차지하세요.
         </p>
+        <div className="flex gap-4 mt-5 text-[11px] font-bold text-neutral-500 dark:text-neutral-400">
+          <span>● 10개 구단</span><span>● 고정 시드</span><span>● 영구적 선택</span>
+        </div>
       </div>
 
       {/* 10개 구단 탭 선택 바 */}
@@ -51,14 +68,14 @@ export const TeamSelectView: React.FC<TeamSelectViewProps> = ({
           <span>KBO 10개 구단</span>
           <span className="text-[11px] text-neutral-500 dark:text-neutral-400 font-normal">선택하여 전력 미리보기</span>
         </div>
-        <div className="grid grid-cols-5 gap-2">
+        <div className="grid grid-cols-5 gap-2 sm:gap-2.5">
           {teams.map(t => {
             const isSelected = t.id === selectedId
             return (
               <button
                 key={t.id}
                 onClick={() => handleSelect(t.id)}
-                className={`py-3 px-2 rounded-2xl text-center flex flex-col items-center justify-center transition-all ${
+                className={`team-tile py-3 px-1 sm:px-2 rounded-2xl text-center flex flex-col items-center justify-center transition-all ${
                   isSelected
                     ? 'bg-black text-white dark:bg-white dark:text-black shadow-md ring-2 ring-black/20 dark:ring-white/60 scale-[1.03]'
                     : 'bg-white hover:bg-neutral-100 dark:bg-white/[0.04] dark:hover:bg-white/[0.08] text-neutral-800 dark:text-neutral-200 border border-neutral-200/90 dark:border-white/[0.08] shadow-sm'
@@ -81,7 +98,7 @@ export const TeamSelectView: React.FC<TeamSelectViewProps> = ({
 
       {/* 선택된 구단 상세 브리핑 카드 */}
       {currentTeam && (
-        <div className="apple-card rounded-3xl p-5 sm:p-6 space-y-4">
+        <div className="apple-card team-brief rounded-[28px] p-5 sm:p-6 space-y-5" style={{ '--team-color': currentTeam.primaryColor } as React.CSSProperties}>
           <div className="flex items-center justify-between border-b border-black/[0.06] dark:border-white/[0.06] pb-4">
             <div className="flex items-center gap-3">
               <span
@@ -102,6 +119,11 @@ export const TeamSelectView: React.FC<TeamSelectViewProps> = ({
             {currentTeam.description}
           </p>
 
+          <div className="rounded-2xl bg-neutral-100/80 dark:bg-black/25 border border-black/[0.06] dark:border-white/[0.06] p-4">
+            <div className="text-[10px] font-black tracking-[0.16em] text-red-600 dark:text-red-400 uppercase">Board Mission</div>
+            <p className="text-sm font-bold text-neutral-900 dark:text-white mt-1">{getTeamProfile(currentTeam).mission}</p>
+          </div>
+
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-1 text-center">
             <div className="bg-neutral-50 dark:bg-white/[0.03] p-3 rounded-2xl border border-neutral-200/80 dark:border-white/[0.04]">
               <div className="text-[10px] text-neutral-500 dark:text-neutral-400 font-medium uppercase tracking-wider">초기 예산</div>
@@ -119,6 +141,18 @@ export const TeamSelectView: React.FC<TeamSelectViewProps> = ({
               <div className="text-[10px] text-neutral-500 dark:text-neutral-400 font-medium uppercase tracking-wider">유망주 팜</div>
               <div className="text-sm font-bold text-neutral-900 dark:text-white mt-1">{currentTeam.farmSystem}</div>
             </div>
+          </div>
+
+          <div className="space-y-3">
+            {getTeamProfile(currentTeam).strengths.map(item => (
+              <div key={item.label} className="grid grid-cols-[76px_1fr_28px] items-center gap-3 text-[11px]">
+                <span className="font-semibold text-neutral-500 dark:text-neutral-400">{item.label}</span>
+                <div className="h-1.5 rounded-full bg-neutral-200 dark:bg-white/10 overflow-hidden">
+                  <div className="h-full rounded-full transition-all duration-500" style={{ width: `${item.value}%`, backgroundColor: currentTeam.primaryColor }} />
+                </div>
+                <span className="font-mono font-bold text-right text-neutral-800 dark:text-neutral-200">{item.value}</span>
+              </div>
+            ))}
           </div>
 
           <div className="pt-2">

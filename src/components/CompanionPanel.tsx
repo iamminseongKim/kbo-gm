@@ -19,6 +19,7 @@ export const CompanionPanel: React.FC<CompanionPanelProps> = ({
   const [activeTab, setActiveTab] = useState<'roster' | 'standings'>('roster')
 
   const teamPlayers = players.filter(p => p.teamId === team.id)
+  const currentStanding = standings?.find(record => record.teamId === team.id)
   const pitchers = teamPlayers.filter(p => p.isPitcher)
   const batters = teamPlayers.filter(p => !p.isPitcher)
 
@@ -255,13 +256,26 @@ export const CompanionPanel: React.FC<CompanionPanelProps> = ({
           </div>
         </div>
 
+        {currentStanding && (
+          <div className="mt-3 rounded-2xl bg-gradient-to-r from-red-600/15 to-transparent border border-red-500/20 px-4 py-3 flex items-center justify-between">
+            <div>
+              <div className="text-[10px] font-black tracking-[0.14em] text-red-500">LIVE PENNANT RACE</div>
+              <div className="text-xs text-neutral-500 dark:text-neutral-400 mt-0.5">이벤트 결정이 반영된 현재 순위</div>
+            </div>
+            <div className="flex items-center gap-4 text-right">
+              <div><div className="text-[10px] text-neutral-500">RECORD</div><div className="text-xs font-mono font-bold text-neutral-900 dark:text-white">{currentStanding.wins}-{currentStanding.losses}-{currentStanding.draws}</div></div>
+              <div><div className="text-[10px] text-neutral-500">RANK</div><div className="text-2xl font-black text-red-500">{currentStanding.rank}<span className="text-xs ml-0.5">위</span></div></div>
+            </div>
+          </div>
+        )}
+
         {/* 구단 운영 기조 및 후폭풍/육성 누적 현황 */}
         <div className="flex items-center justify-between pt-3 mt-1 border-t border-black/[0.04] dark:border-white/[0.04] text-[11px]">
           <div className="flex items-center gap-1.5 font-semibold">
             <span className="text-neutral-500 dark:text-neutral-400">구단 기조:</span>
             {team.stance === 'WIN_NOW' ? (
               <span className="px-2 py-0.5 rounded-md bg-amber-100 text-amber-800 dark:bg-amber-400/20 dark:text-amber-300 border border-amber-300/80 font-bold">
-                🏆 윈나우 (전력 +4)
+                🏆 윈나우 (전력 +2)
               </span>
             ) : team.stance === 'REBUILDING' ? (
               <span className="px-2 py-0.5 rounded-md bg-emerald-100 text-emerald-800 dark:bg-emerald-400/20 dark:text-emerald-300 border border-emerald-300/80 font-bold">
@@ -316,7 +330,7 @@ export const CompanionPanel: React.FC<CompanionPanelProps> = ({
           </div>
 
           <span className="text-[11px] text-neutral-500 dark:text-neutral-400 font-medium">
-            {activeTab === 'roster' ? `${2025 + (season || 1)}년 공식 등록 엔트리` : '144경기 기준'}
+            {activeTab === 'roster' ? `${2025 + (season || 1)}년 공식 등록 엔트리` : '현재 시점 라이브'}
           </span>
         </div>
 
@@ -384,7 +398,7 @@ export const CompanionPanel: React.FC<CompanionPanelProps> = ({
               ) : (
                 <div className="py-12 text-center text-neutral-500 dark:text-neutral-400 space-y-2">
                   <div className="text-xs font-bold text-neutral-700 dark:text-neutral-300">정규시즌 개막 전</div>
-                  <div className="text-[11px] font-normal">프리시즌 및 2회의 시즌 중 결정을 마친 후 144경기 페넌트레이스가 시뮬레이션됩니다.</div>
+                  <div className="text-[11px] font-normal">시즌이 개막하면 이벤트와 결정이 반영된 현재 순위가 이곳에 계속 표시됩니다.</div>
                 </div>
               )}
 

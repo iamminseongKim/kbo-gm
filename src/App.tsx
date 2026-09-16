@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import {
   GamePhase,
   Team,
@@ -9,7 +9,8 @@ import {
   SeasonSummary,
   ForeignCandidate,
   RookieProspect,
-  TeamStance
+  TeamStance,
+  TradeOffer
 } from './types'
 import { KBO_TEAMS } from './data/teams'
 import { INITIAL_PLAYERS } from './data/players'
@@ -21,10 +22,12 @@ import { simulatePostseason, SeriesResult, TacticChoice } from './engine/postsea
 import {
   generateForeignCandidates,
   generateRookieProspects,
-  convertRookieToPlayer
+  convertRookieToPlayer,
+  convertForeignToPlayer
 } from './engine/player_generator'
 import { advanceSeasonAndApplyAging } from './engine/aging'
 import { assignSeasonPlayerForms } from './engine/form'
+import { generateTradeOffers } from './engine/trades'
 
 import { Header } from './components/Header'
 import { RosterModal } from './components/RosterModal'
@@ -40,6 +43,10 @@ import { ClutchMatchView } from './components/ClutchMatchView'
 import { PostseasonView } from './components/PostseasonView'
 import { SettlementView } from './components/SettlementView'
 import { EndingView } from './components/EndingView'
+import { SeasonProgress } from './components/SeasonProgress'
+import { TradeDeadlineView } from './components/TradeDeadlineView'
+import { MidseasonReportView } from './components/MidseasonReportView'
+import { ForeignReplacementView } from './components/ForeignReplacementView'
 
 export default function App() {
   const [phase, setPhase] = useState<GamePhase>('TEAM_SELECT')
@@ -59,12 +66,21 @@ export default function App() {
   // 스토브리그 & 드래프트 풀
   const [foreignCandidates, setForeignCandidates] = useState<ForeignCandidate[]>([])
   const [rookieProspects, setRookieProspects] = useState<RookieProspect[]>([])
+  const [tradeOffers, setTradeOffers] = useState<TradeOffer[]>([])
+  const seenForeignNames = useRef<string[]>([])
+  const seenRookieNames = useRef<string[]>([])
 
   // 시즌 돌발 이벤트
   const [inSeasonEvents, setInSeasonEvents] = useState(IN_SEASON_EVENTS)
+  const [firstHalfEventIndex, setFirstHalfEventIndex] = useState(0)
+  const [secondHalfEventIndex, setSecondHalfEventIndex] = useState(3)
+  const seenEventIds = useRef<string[]>([])
 
   // 시뮬레이션 결과
   const [standings, setStandings] = useState<StandingsRecord[]>([])
+  const [midseasonStandings, setMidseasonStandings] = useState<StandingsRecord[]>([])
+  const [injuredPlayerId, setInjuredPlayerId] = useState<string | null>(null)
+  const [reviewForeignPlayerId, setReviewForeignPlayerId] = useState<string | null>(null)
   const [postseasonResults, setPostseasonResults] = useState<{
     seriesList: SeriesResult[]
     champion: Team
@@ -101,6 +117,9 @@ export default function App() {
     setHistory([])
     setIsFired(false)
     setFiredReason('')
+    seenForeignNames.current = []
+    seenRookieNames.current = []
+    seenEventIds.current = []
     const clonedTeams = JSON.parse(JSON.stringify(KBO_TEAMS))
     setTeams(clonedTeams)
 
@@ -130,37 +149,63 @@ export default function App() {
     setActiveEnv(ENVIRONMENT_CARDS[envIdx])
 
     // 스토브리그 외국인 후보 3인 생성
-    const foreigners = generateForeignCandidates(prng, seasonNum)
+    const foreigners = generateForeignCandidates(prng, seasonNum, seenForeignNames.current)
+    seenForeignNames.current = [...seenForeignNames.current, ...foreigners.map(player => player.name)]
     setForeignCandidates(foreigners)
 
     // 신인 드래프트 3인 생성 (리빌딩 누적 시 특급 스카우팅 보너스)
-    const rookies = generateRookieProspects(prng, seasonNum, currentRebuildStack)
+    const rookies = generateRookieProspects(prng, seasonNum, currentRebuildStack, seenRookieNames.current)
+    seenRookieNames.current = [...seenRookieNames.current, ...rookies.map(player => player.name)]
     setRookieProspects(rookies)
 
-    // 전반기 / 후반기 이벤트 2개 추첨
-    const pickedEvents = prng.sample(IN_SEASON_EVENTS, 2)
+    // 전반기 3개 / 후반기 3개. 최근 등장한 사건은 풀이 허용하는 한 재등장하지 않는다.
+    let availableEvents = IN_SEASON_EVENTS.filter(event => !seenEventIds.current.includes(event.id))
+    if (availableEvents.length < 6) {
+      // 풀을 한 바퀴 돈 뒤에도 직전 시즌 사건은 연속으로 나오지 않도록 유지한다.
+      const lastSeasonIds = new Set(seenEventIds.current.slice(-6))
+      availableEvents = IN_SEASON_EVENTS.filter(event => !lastSeasonIds.has(event.id))
+      seenEventIds.current = seenEventIds.current.slice(-6)
+    }
+    const pickedEvents = prng.sample(availableEvents, 6)
+    seenEventIds.current = [...seenEventIds.current, ...pickedEvents.map(event => event.id)]
     setInSeasonEvents(pickedEvents)
+    setFirstHalfEventIndex(0)
+    setSecondHalfEventIndex(3)
 
     setModifierDelta(0)
     setPostseasonResults(undefined)
   }
 
   // 리소스 변경 적용 헬퍼
-  const applyOptionDeltas = (opt: EventOption) => {
+  const applyOptionDeltas = (opt: EventOption, gamesPerOpponent?: number, simulationSeed = 0) => {
+    const current = teams[userTeamId]
+    const updatedUserTeam = {
+      ...current,
+      budget: Math.max(-100, current.budget + (opt.budgetDelta || 0)),
+      ownerTrust: Math.min(100, Math.max(0, current.ownerTrust + (opt.ownerTrustDelta || 0))),
+      fanSupport: Math.min(100, Math.max(0, current.fanSupport + (opt.fanSupportDelta || 0))),
+      chemistry: Math.min(100, Math.max(0, current.chemistry + (opt.chemistryDelta || 0))),
+      farmSystem: Math.min(100, Math.max(0, current.farmSystem + (opt.farmDelta || 0)))
+    }
     setTeams(prev => {
-      const current = prev[userTeamId]
-      const updated = {
-        ...current,
-        budget: Math.max(-100, current.budget + (opt.budgetDelta || 0)),
-        ownerTrust: Math.min(100, Math.max(0, current.ownerTrust + (opt.ownerTrustDelta || 0))),
-        fanSupport: Math.min(100, Math.max(0, current.fanSupport + (opt.fanSupportDelta || 0))),
-        chemistry: Math.min(100, Math.max(0, current.chemistry + (opt.chemistryDelta || 0))),
-        farmSystem: Math.min(100, Math.max(0, current.farmSystem + (opt.farmDelta || 0)))
-      }
-      return { ...prev, [userTeamId]: updated }
+      return { ...prev, [userTeamId]: updatedUserTeam }
     })
+    const nextModifier = modifierDelta + (opt.overallDelta || 0)
     if (opt.overallDelta) {
-      setModifierDelta(prev => prev + (opt.overallDelta || 0))
+      setModifierDelta(nextModifier)
+    }
+    if (gamesPerOpponent) {
+      const projectedTeams = { ...teams, [userTeamId]: updatedUserTeam }
+      setStandings(simulatePennantRace(
+        projectedTeams,
+        players,
+        getPrng(1200 + simulationSeed),
+        activeEnv,
+        nextModifier,
+        userTeamId,
+        season,
+        gamesPerOpponent
+      ))
     }
   }
 
@@ -225,19 +270,90 @@ export default function App() {
 
   // [Phase 2 -> 3] 프리시즌 완료 -> 전반기 돌발 이벤트
   const handleConfirmPreseason = (option: EventOption) => {
-    applyOptionDeltas(option)
+    applyOptionDeltas(option, 2, 1)
     setPhase('FIRST_HALF_EVENTS')
   }
 
   // [Phase 3 -> 4] 전반기 이벤트 완료 -> 1군 강등 / 2군 콜업 결단
   const handleConfirmFirstHalfEvent = (option: EventOption) => {
-    applyOptionDeltas(option)
+    const gamesPerOpponent = 4 + firstHalfEventIndex * 2
+    applyOptionDeltas(option, gamesPerOpponent, 10 + firstHalfEventIndex)
+    if (firstHalfEventIndex < 2) {
+      setFirstHalfEventIndex(prev => prev + 1)
+      return
+    }
+    const injuryPrng = getPrng(404)
+    const injuryPool = players
+      .filter(player => player.teamId === userTeamId && !player.isInjured)
+      .sort((a, b) => b.overall - a.overall)
+      .slice(0, 6)
+    const injured = injuryPool.length ? injuryPrng.choice(injuryPool) : null
+    if (injured) {
+      setInjuredPlayerId(injured.id)
+      setPlayers(prev => prev.map(player => player.id === injured.id
+        ? { ...player, isInjured: true, injuryWeeks: injuryPrng.nextInt(4, 6) }
+        : player
+      ))
+    }
+    setMidseasonStandings(simulatePennantRace(teams, players, getPrng(405), activeEnv, modifierDelta, userTeamId, season, 8))
+    setPhase('MIDSEASON_REPORT')
+  }
+
+  const handleMidseasonDecision = (decision: 'REST' | 'PLAY_THROUGH') => {
+    if (decision === 'REST') {
+      setTeams(prev => ({ ...prev, [userTeamId]: { ...prev[userTeamId], chemistry: Math.min(100, prev[userTeamId].chemistry + 6) } }))
+    } else if (injuredPlayerId) {
+      setPlayers(prev => prev.map(player => player.id === injuredPlayerId
+        ? { ...player, isInjured: false, injuryWeeks: 0, overall: Math.max(50, player.overall - 1) }
+        : player
+      ))
+      setTeams(prev => ({ ...prev, [userTeamId]: { ...prev[userTeamId], chemistry: Math.max(0, prev[userTeamId].chemistry - 5) } }))
+    }
+    const foreignPool = players
+      .filter(player => player.teamId === userTeamId && player.isForeign && !player.isAsianQuota)
+      .sort((a, b) => (a.overall + (a.formDelta || 0)) - (b.overall + (b.formDelta || 0)))
+    if (foreignPool.length) {
+      setReviewForeignPlayerId(foreignPool[0].id)
+      setPhase('FOREIGN_REPLACEMENT')
+    } else {
+      setPhase('CALLUP_DECISION')
+    }
+  }
+
+  const handleKeepForeignPlayer = () => {
+    setTeams(prev => ({
+      ...prev,
+      [userTeamId]: {
+        ...prev[userTeamId],
+        chemistry: Math.min(100, prev[userTeamId].chemistry + 4),
+        fanSupport: Math.max(0, prev[userTeamId].fanSupport - 2)
+      }
+    }))
+    setPhase('CALLUP_DECISION')
+  }
+
+  const handleReplaceForeignPlayer = (candidate: ForeignCandidate, totalCost: number) => {
+    const replacement = convertForeignToPlayer(candidate, userTeamId)
+    const previous = players.find(player => player.id === reviewForeignPlayerId)
+    setPlayers(prev => [
+      ...prev.filter(player => player.id !== reviewForeignPlayerId && player.id !== candidate.id),
+      replacement
+    ])
+    setTeams(prev => ({
+      ...prev,
+      [userTeamId]: {
+        ...prev[userTeamId],
+        budget: prev[userTeamId].budget - totalCost,
+        fanSupport: Math.min(100, Math.max(0, prev[userTeamId].fanSupport + (previous && candidate.overall > previous.overall ? 6 : -3))),
+        chemistry: Math.max(0, prev[userTeamId].chemistry - 3)
+      }
+    }))
     setPhase('CALLUP_DECISION')
   }
 
   // [Phase 4 -> 5] 콜업 결단 완료 -> 신인 1차 드래프트
   const handleConfirmCallup = (option: EventOption) => {
-    applyOptionDeltas(option)
+    applyOptionDeltas(option, 9, 30)
     setPhase('ROOKIE_DRAFT')
   }
 
@@ -286,7 +402,8 @@ export default function App() {
   // [Phase 5 -> 6] 신인 1차 지명 완료 -> 후반기 돌발 이벤트
   const handleDraftRookie = (prospect: RookieProspect) => {
     const newRookie = convertRookieToPlayer(prospect, userTeamId)
-    setPlayers(prev => [...prev, newRookie])
+    const rosterAfterDraft = [...players, newRookie]
+    setPlayers(rosterAfterDraft)
     setTeams(prev => ({
       ...prev,
       [userTeamId]: {
@@ -296,12 +413,37 @@ export default function App() {
         fanSupport: Math.min(100, prev[userTeamId].fanSupport + 5)
       }
     }))
+    setTradeOffers(generateTradeOffers(teams, rosterAfterDraft, userTeamId, getPrng(555), season))
+    setPhase('TRADE_DEADLINE')
+  }
+
+  const handleAcceptTrade = (offer: TradeOffer) => {
+    setPlayers(prev => prev.map(player => {
+      if (player.id === offer.outgoingPlayerId) return { ...player, teamId: offer.partnerTeamId }
+      if (player.id === offer.incomingPlayerId) return { ...player, teamId: userTeamId }
+      return player
+    }))
+    setTeams(prev => ({
+      ...prev,
+      [userTeamId]: {
+        ...prev[userTeamId],
+        fanSupport: Math.min(100, prev[userTeamId].fanSupport + 3),
+        chemistry: Math.max(0, prev[userTeamId].chemistry - 2)
+      }
+    }))
     setPhase('SECOND_HALF_EVENTS')
   }
 
+  const handlePassTrade = () => setPhase('SECOND_HALF_EVENTS')
+
   // [Phase 6 -> CLUTCH_MATCH] 후반기 이벤트 완료 -> 9회말 승부처 현장 작전 지휘
   const handleConfirmSecondHalfEvent = (option: EventOption) => {
-    applyOptionDeltas(option)
+    const gamesPerOpponent = 10 + (secondHalfEventIndex - 3) * 2
+    applyOptionDeltas(option, gamesPerOpponent, 40 + secondHalfEventIndex)
+    if (secondHalfEventIndex < 5) {
+      setSecondHalfEventIndex(prev => prev + 1)
+      return
+    }
     setPhase('CLUTCH_MATCH')
   }
 
@@ -309,8 +451,8 @@ export default function App() {
   const handleFinishClutchMatch = (isVictory: boolean, _outcomeDesc: string) => {
     let extraModifier = modifierDelta
     if (isVictory) {
-      extraModifier += 3
-      setModifierDelta(prev => prev + 3)
+      extraModifier += 1.5
+      setModifierDelta(prev => prev + 1.5)
       setTeams(prev => ({
         ...prev,
         [userTeamId]: {
@@ -321,7 +463,7 @@ export default function App() {
       }))
     }
     const prng = getPrng(888)
-    const res = simulatePennantRace(teams, players, prng, activeEnv, extraModifier, userTeamId)
+    const res = simulatePennantRace(teams, players, prng, activeEnv, extraModifier, userTeamId, season)
     setStandings(res)
     setPhase('PENNANT_RACE')
   }
@@ -339,7 +481,7 @@ export default function App() {
   // [Phase 8] 포스트시즌 시뮬레이션 실행
   const handleRunPostseason = (tactic: TacticChoice) => {
     const prng = getPrng(999)
-    const res = simulatePostseason(standings, teams, prng, userTeamId, tactic)
+    const res = simulatePostseason(standings, teams, prng, userTeamId, tactic, season)
     setPostseasonResults(res)
   }
 
@@ -440,7 +582,10 @@ export default function App() {
     const { updatedPlayers } = advanceSeasonAndApplyAging(players, teams, prng, nextSeason)
 
     // 2. 차기 시즌 선수단 컨디션 / 슬럼프(Form) 부여
-    const finalPlayers = assignSeasonPlayerForms(updatedPlayers, prng)
+    const finalPlayers = assignSeasonPlayerForms(
+      updatedPlayers.map(player => ({ ...player, isInjured: false, injuryWeeks: 0 })),
+      prng
+    )
     setPlayers(finalPlayers)
 
     const currentTeam = teams[userTeamId]
@@ -490,11 +635,11 @@ export default function App() {
     : userTeam
 
   return (
-    <div className={`min-h-screen ${theme === 'dark' ? 'dark bg-black text-neutral-100' : 'light bg-[#f5f5f7] text-[#1d1d1f]'} flex flex-col items-center py-2 sm:py-6 px-2 sm:px-4 font-sans selection:bg-neutral-500/30 transition-colors duration-200`}>
+    <div className={`game-shell min-h-screen ${theme === 'dark' ? 'dark text-neutral-100' : 'light text-[#1d1d1f]'} flex flex-col items-center py-2 sm:py-5 px-2 sm:px-4 font-sans selection:bg-red-500/30 transition-colors duration-200`}>
       {/* 상단 글로벌 애플 스타일 내비게이션 바 */}
-      <nav className="w-full max-w-7xl px-3 py-2.5 mb-4 flex items-center justify-between border-b border-black/[0.08] dark:border-white/[0.06]">
+      <nav className="top-command-bar w-full max-w-7xl px-3 sm:px-4 py-3 mb-4 flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-2xl bg-neutral-200/70 dark:bg-white/[0.08] border border-neutral-300/80 dark:border-white/15 flex items-center justify-center shadow-sm backdrop-blur transition-transform hover:scale-105">
+          <div className="brand-ball w-10 h-10 rounded-full flex items-center justify-center shadow-sm transition-transform hover:rotate-6">
             <svg className="w-5 h-5 text-neutral-900 dark:text-white" viewBox="0 0 24 24" fill="none">
               <circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="1.8" />
               <path d="M7 4.5C8.8 6.5 9.8 9.1 9.8 12C9.8 14.9 8.8 17.5 7 19.5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
@@ -505,15 +650,15 @@ export default function App() {
           </div>
           <div className="flex flex-col">
             <div className="flex items-center gap-1.5">
-              <span className="font-bold text-base tracking-tight text-neutral-900 dark:text-white leading-none">
-                KBO<span className="font-light text-neutral-500 dark:text-neutral-400 ml-0.5">GM</span>
+              <span className="font-black text-base tracking-[-0.04em] text-neutral-900 dark:text-white leading-none">
+                KBO<span className="font-medium text-red-600 dark:text-red-500 ml-1">GM</span>
               </span>
               <span className="text-[10px] px-1.5 py-0.2 rounded-full bg-neutral-200/80 text-neutral-700 dark:bg-white/10 dark:text-neutral-300 font-mono border border-neutral-300/80 dark:border-white/15">
-                2026
+                ROGUELIKE
               </span>
             </div>
             <span className="text-[10px] text-neutral-500 dark:text-neutral-400 font-medium tracking-wide">
-              단장 로그라이크 시뮬레이터
+              THE FRONT OFFICE · 2026
             </span>
           </div>
         </div>
@@ -564,6 +709,9 @@ export default function App() {
                 onOpenRoster={() => setIsRosterOpen(true)}
               />
             )}
+            {phase !== 'TEAM_SELECT' && phase !== 'GAME_OVER' && (
+              <SeasonProgress phase={phase} />
+            )}
 
             {/* 1. 구단 선택 */}
             {phase === 'TEAM_SELECT' && (
@@ -597,10 +745,35 @@ export default function App() {
             {/* 4. 전반기 돌발 이벤트 */}
             {phase === 'FIRST_HALF_EVENTS' && (
               <SeasonEventView
-                phaseTitle="전반기 레이스"
-                event={inSeasonEvents[0]}
+                key={inSeasonEvents[firstHalfEventIndex]?.id}
+                phaseTitle={`전반기 이벤트 ${firstHalfEventIndex + 1}/3`}
+                event={inSeasonEvents[firstHalfEventIndex]}
                 team={userTeam}
                 onConfirmChoice={handleConfirmFirstHalfEvent}
+              />
+            )}
+
+            {/* 4.5. 올스타 브레이크 전반기 결산 및 실제 부상 대응 */}
+            {phase === 'MIDSEASON_REPORT' && (
+              <MidseasonReportView
+                standings={midseasonStandings}
+                userTeam={userTeam}
+                injuredPlayer={players.find(player => player.id === injuredPlayerId) || null}
+                onDecision={handleMidseasonDecision}
+              />
+            )}
+
+            {/* 4.7. 외국인 선수 중도 교체 시장 */}
+            {phase === 'FOREIGN_REPLACEMENT' && reviewForeignPlayerId && (
+              <ForeignReplacementView
+                team={userTeam}
+                strugglingPlayer={players.find(player => player.id === reviewForeignPlayerId)!}
+                candidates={foreignCandidates
+                  .filter(candidate => !candidate.isAsianQuota && !players.some(player => player.id === candidate.id))
+                  .sort((a, b) => b.overall - a.overall)
+                  .slice(0, 4)}
+                onKeep={handleKeepForeignPlayer}
+                onReplace={handleReplaceForeignPlayer}
               />
             )}
 
@@ -623,11 +796,24 @@ export default function App() {
               />
             )}
 
+            {/* 6.5. 트레이드 마감일 */}
+            {phase === 'TRADE_DEADLINE' && (
+              <TradeDeadlineView
+                userTeam={userTeam}
+                teams={teams}
+                players={players}
+                offers={tradeOffers}
+                onAccept={handleAcceptTrade}
+                onPass={handlePassTrade}
+              />
+            )}
+
             {/* 7. 후반기 승부처 돌발 이벤트 */}
             {phase === 'SECOND_HALF_EVENTS' && (
               <SeasonEventView
-                phaseTitle="후반기 승부처"
-                event={inSeasonEvents[1]}
+                key={inSeasonEvents[secondHalfEventIndex]?.id}
+                phaseTitle={`후반기 이벤트 ${secondHalfEventIndex - 2}/3`}
+                event={inSeasonEvents[secondHalfEventIndex]}
                 team={userTeam}
                 onConfirmChoice={handleConfirmSecondHalfEvent}
               />
