@@ -25,8 +25,19 @@ export const Header: React.FC<HeaderProps> = ({
           <div className="flex items-baseline gap-2">
             <span className="font-bold text-sm tracking-tight text-neutral-900 dark:text-white">{team.name}</span>
             <span className="text-[11px] text-neutral-500 dark:text-neutral-400 font-mono">
-              시즌 {season}/{maxSeasons}
+              {2025 + season}년 (시즌 {season}/{maxSeasons})
             </span>
+            {team.stance && (
+              <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold border ${
+                team.stance === 'WIN_NOW'
+                  ? 'bg-amber-100 text-amber-800 dark:bg-amber-400/20 dark:text-amber-300 border-amber-300/80'
+                  : team.stance === 'REBUILDING'
+                  ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-400/20 dark:text-emerald-300 border-emerald-300/80'
+                  : 'bg-neutral-100 text-neutral-700 dark:bg-white/10 dark:text-neutral-300 border-neutral-300/80'
+              }`}>
+                {team.stance === 'WIN_NOW' ? '🏆 윈나우' : team.stance === 'REBUILDING' ? '🌱 리빌딩' : '⚖️ 밸런스'}
+              </span>
+            )}
           </div>
         </div>
 

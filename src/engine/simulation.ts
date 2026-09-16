@@ -24,17 +24,25 @@ export function calculateTeamPower(
     const pitchers = teamPlayers.filter(p => p.isPitcher)
     
     if (batters.length > 0) {
-      avgBatterPower = batters.reduce((acc, b) => acc + b.overall, 0) / batters.length
+      avgBatterPower = batters.reduce((acc, b) => acc + (b.overall + (b.formDelta || 0)), 0) / batters.length
     }
     if (pitchers.length > 0) {
-      avgPitcherPower = pitchers.reduce((acc, p) => acc + p.overall, 0) / pitchers.length
+      avgPitcherPower = pitchers.reduce((acc, p) => acc + (p.overall + (p.formDelta || 0)), 0) / pitchers.length
     }
+  }
+
+  // 윈나우 vs 리빌딩 기조 보정
+  let stanceDelta = 0
+  if (team.stance === 'WIN_NOW') {
+    stanceDelta = 4 // 윈나우: 즉각적 전력 극대화로 우승 확률 상승
+  } else if (team.stance === 'REBUILDING') {
+    stanceDelta = -4 // 리빌딩: 유망주 출전 기회 보장으로 당해 승률 희생
   }
 
   // 케미스트리 및 팀 보정
   const chemistryBonus = (team.chemistry - 80) * 0.15
-  let batting = avgBatterPower + chemistryBonus + modifierDelta
-  let pitching = avgPitcherPower + chemistryBonus + modifierDelta
+  let batting = avgBatterPower + chemistryBonus + modifierDelta + stanceDelta
+  let pitching = avgPitcherPower + chemistryBonus + modifierDelta + stanceDelta
 
   // 환경 카드 보정
   if (environment) {

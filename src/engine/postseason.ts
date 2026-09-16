@@ -23,7 +23,9 @@ function playPostseasonGame(
   powerB: number,
   prng: PRNG,
   tacticA?: TacticChoice,
-  tacticB?: TacticChoice
+  tacticB?: TacticChoice,
+  stanceA?: string,
+  stanceB?: string
 ): boolean {
   let modA = 0
   let modB = 0
@@ -32,6 +34,12 @@ function playPostseasonGame(
   if (tacticA === 'early_closer') modA += 3
   if (tacticB === 'short_rest') modB += 4
   if (tacticB === 'early_closer') modB += 3
+
+  // 윈나우 시 즉각 전력 집중 및 단기전 버프 / 리빌딩 시 경험 중심
+  if (stanceA === 'WIN_NOW') modA += 4
+  if (stanceB === 'WIN_NOW') modB += 4
+  if (stanceA === 'REBUILDING') modA -= 4
+  if (stanceB === 'REBUILDING') modB -= 4
 
   const probA = (powerA + modA) / (powerA + modA + powerB + modB)
   return prng.next() < probA
@@ -69,7 +77,7 @@ export function simulatePostseason(
     // 1차전
     const t4Tactic = team4.id === userTeamId ? userTactic : 'standard'
     const t5Tactic = team5.id === userTeamId ? userTactic : 'standard'
-    const game1Win4 = playPostseasonGame(82, 80, prng, t4Tactic, t5Tactic)
+    const game1Win4 = playPostseasonGame(82, 80, prng, t4Tactic, t5Tactic, team4.stance, team5.stance)
 
     if (game1Win4) {
       team4Wins++
@@ -78,7 +86,7 @@ export function simulatePostseason(
       team5Wins++
       logs.push(`1차전: ${team5.shortName} 승리! 시리즈는 최종 2차전으로 이어집니다.`)
       // 2차전
-      const game2Win4 = playPostseasonGame(82, 80, prng, t4Tactic, t5Tactic)
+      const game2Win4 = playPostseasonGame(82, 80, prng, t4Tactic, t5Tactic, team4.stance, team5.stance)
       if (game2Win4) {
         team4Wins++
         logs.push(`2차전: ${team4.shortName} 신승! 최종 승리로 준플레이오프 진출!`)
@@ -113,7 +121,7 @@ export function simulatePostseason(
     while (team3Wins < 3 && wcWins < 3) {
       const t3Tactic = team3.id === userTeamId ? userTactic : 'standard'
       const wcTactic = wcWinner.id === userTeamId ? userTactic : 'standard'
-      const win3 = playPostseasonGame(84, 82, prng, t3Tactic, wcTactic)
+      const win3 = playPostseasonGame(84, 82, prng, t3Tactic, wcTactic, team3.stance, wcWinner.stance)
       if (win3) team3Wins++
       else wcWins++
       logs.push(`${team3Wins + wcWins}차전: ${win3 ? team3.shortName : wcWinner.shortName} 승 (${team3Wins}-${wcWins})`)
@@ -144,7 +152,7 @@ export function simulatePostseason(
     while (team2Wins < 3 && semiWins < 3) {
       const t2Tactic = team2.id === userTeamId ? userTactic : 'standard'
       const semiTactic = semiWinner.id === userTeamId ? userTactic : 'standard'
-      const win2 = playPostseasonGame(86, 84, prng, t2Tactic, semiTactic)
+      const win2 = playPostseasonGame(86, 84, prng, t2Tactic, semiTactic, team2.stance, semiWinner.stance)
       if (win2) team2Wins++
       else semiWins++
       logs.push(`${team2Wins + semiWins}차전: ${win2 ? team2.shortName : semiWinner.shortName} 승 (${team2Wins}-${semiWins})`)
@@ -175,7 +183,7 @@ export function simulatePostseason(
     while (team1Wins < 4 && poWins < 4) {
       const t1Tactic = team1.id === userTeamId ? userTactic : 'standard'
       const poTactic = poWinner.id === userTeamId ? userTactic : 'standard'
-      const win1 = playPostseasonGame(88, 86, prng, t1Tactic, poTactic)
+      const win1 = playPostseasonGame(88, 86, prng, t1Tactic, poTactic, team1.stance, poWinner.stance)
       if (win1) team1Wins++
       else poWins++
       logs.push(`${team1Wins + poWins}차전: ${win1 ? team1.shortName : poWinner.shortName} 승 (${team1Wins}-${poWins})`)

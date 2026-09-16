@@ -1,7 +1,8 @@
 import React, { useState } from 'react'
-import { Team, Player, ForeignCandidate, Position } from '../types'
+import { Team, Player, ForeignCandidate, Position, TeamStance } from '../types'
 
 interface StoveLeagueViewProps {
+  season?: number
   team: Team
   players: Player[]
   candidates: ForeignCandidate[]
@@ -10,7 +11,8 @@ interface StoveLeagueViewProps {
     releasedPlayerIds: string[],
     netBudgetDelta: number,
     powerPenalty: number,
-    fanPenalty: number
+    fanPenalty: number,
+    stance: TeamStance
   ) => void
 }
 
@@ -25,11 +27,13 @@ interface SlotState {
 }
 
 export const StoveLeagueView: React.FC<StoveLeagueViewProps> = ({
+  season = 1,
   team,
   players,
   candidates,
   onFinalizeStoveLeague
 }) => {
+  const [selectedStance, setSelectedStance] = useState<TeamStance>(team.stance || 'BALANCED')
   const teamPlayers = players.filter(p => p.teamId === team.id)
   const currentForeigns = teamPlayers.filter(p => p.isForeign)
   const releasablePlayers = teamPlayers.filter(p => !p.isForeign && (p.age >= 32 || p.salary >= 8))
@@ -241,23 +245,25 @@ export const StoveLeagueView: React.FC<StoveLeagueViewProps> = ({
       releasedPlayerIds,
       netBudgetDelta,
       powerPenalty,
-      fanPenalty
+      fanPenalty,
+      selectedStance
     )
   }
+
+  const currentYear = 2025 + season
 
   return (
     <div className="flex-1 flex flex-col p-4 sm:p-6 space-y-6 overflow-y-auto animate-fade-in">
       {/* 헤더 브리핑 */}
       <div className="text-center py-4 apple-card rounded-3xl p-5">
         <span className="text-[11px] font-semibold text-neutral-500 dark:text-neutral-400 tracking-wider uppercase">
-          KBO Stove League · Foreign Roster Management
+          KBO Stove League · {currentYear} Season
         </span>
         <h2 className="text-2xl font-bold tracking-tight text-neutral-900 dark:text-white mt-1">
-          스토브리그: 4인 외국인 엔트리 구축
+          {currentYear}년 스토브리그: 구단 기조 & 외국인 엔트리
         </h2>
         <p className="text-xs sm:text-sm text-neutral-600 dark:text-neutral-400 mt-1 max-w-xl mx-auto">
-          외국인은 <b>기존 외인 3명 + 아시아쿼터 1명</b>(총 4명)으로 구성됩니다.
-          재계약 시 연봉이 지출되며, 예산 절감을 위해 미사용 시 <b>극심한 전력 공백(-10 OVR/슬롯)</b>이 발생합니다.
+          올 시즌 <b>구단 운영 기조(윈나우 vs 리빌딩)</b>를 확립하고, <b>외국인 4인 엔트리</b>(외인 3 + 아시아쿼터 1)를 완성하십시오.
         </p>
 
         {/* 상태 요약 바 */}
@@ -283,12 +289,136 @@ export const StoveLeagueView: React.FC<StoveLeagueViewProps> = ({
         </div>
       </div>
 
+      {/* 섹션 0: 구단 운영 기조 설정 (윈나우 vs 밸런스 vs 리빌딩) */}
+      <div className="apple-card rounded-3xl p-5 space-y-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-black/[0.06] dark:border-white/[0.06] pb-3 gap-2">
+          <div>
+            <h3 className="font-bold text-base text-neutral-900 dark:text-white flex items-center gap-2">
+              <span>🧭 {currentYear} 시즌 구단 운영 기조 결정</span>
+            </h3>
+            <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-0.5">
+              이번 시즌 목표를 선택하십시오. 우승 확률과 미래 리스크/리턴이 극명하게 갈립니다.
+            </p>
+          </div>
+
+          <div className="flex items-center gap-2 text-xs">
+            {team.winNowDebt && team.winNowDebt > 0 ? (
+              <span className="px-2.5 py-1 rounded-lg bg-red-50 text-red-600 dark:bg-red-950/40 dark:text-red-300 border border-red-200 dark:border-red-800/40 font-bold">
+                ⚡ 윈나우 후폭풍: {team.winNowDebt}단계
+              </span>
+            ) : null}
+            {team.rebuildingStack && team.rebuildingStack > 0 ? (
+              <span className="px-2.5 py-1 rounded-lg bg-emerald-50 text-emerald-600 dark:bg-emerald-950/40 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800/40 font-bold">
+                🌱 리빌딩 누적: {team.rebuildingStack}년차
+              </span>
+            ) : null}
+          </div>
+        </div>
+
+        {/* 3대 기조 선택 카드 그리드 */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+          {/* 1. 윈나우 */}
+          <button
+            type="button"
+            onClick={() => setSelectedStance('WIN_NOW')}
+            className={`p-4 rounded-2xl border text-left transition-all flex flex-col justify-between ${
+              selectedStance === 'WIN_NOW'
+                ? 'bg-amber-500/10 border-amber-500 ring-2 ring-amber-500/30 shadow-md dark:bg-amber-400/10 dark:border-amber-400'
+                : 'bg-neutral-50 hover:bg-neutral-100/70 dark:bg-white/[0.02] dark:hover:bg-white/[0.04] border-neutral-200/80 dark:border-white/[0.06]'
+            }`}
+          >
+            <div>
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-base font-bold text-neutral-900 dark:text-white flex items-center gap-1.5">
+                  🏆 윈나우 (Win-Now)
+                </span>
+                <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-500 text-white dark:bg-amber-400 dark:text-neutral-950">
+                  전력 +4
+                </span>
+              </div>
+              <p className="text-xs text-neutral-600 dark:text-neutral-300 leading-relaxed">
+                현재 전력을 극대화하여 <b>올 시즌 우승 확률</b>을 대폭 끌어올립니다. (포스트시즌 버프 부여)
+              </p>
+            </div>
+            <div className="mt-3 pt-2.5 border-t border-black/[0.06] dark:border-white/[0.06] text-[11px] text-red-500 dark:text-red-400 font-medium">
+              ⚠️ <b>리바운드 후폭풍</b>: 다음 시즌 베테랑 혹사로 에이징 가속 (-1~-3 OVR) 및 팜 피로도 누적
+            </div>
+          </button>
+
+          {/* 2. 밸런스 */}
+          <button
+            type="button"
+            onClick={() => setSelectedStance('BALANCED')}
+            className={`p-4 rounded-2xl border text-left transition-all flex flex-col justify-between ${
+              selectedStance === 'BALANCED'
+                ? 'bg-neutral-900 text-white border-neutral-900 ring-2 ring-neutral-900/30 shadow-md dark:bg-white dark:text-black dark:border-white'
+                : 'bg-neutral-50 hover:bg-neutral-100/70 dark:bg-white/[0.02] dark:hover:bg-white/[0.04] border-neutral-200/80 dark:border-white/[0.06]'
+            }`}
+          >
+            <div>
+              <div className="flex items-center justify-between mb-2">
+                <span className={`text-base font-bold flex items-center gap-1.5 ${
+                  selectedStance === 'BALANCED' ? 'text-white dark:text-black' : 'text-neutral-900 dark:text-white'
+                }`}>
+                  ⚖️ 투트랙 밸런스
+                </span>
+                <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
+                  selectedStance === 'BALANCED' ? 'bg-white/20 text-white dark:bg-black/20 dark:text-black' : 'bg-neutral-200 text-neutral-700 dark:bg-white/10 dark:text-neutral-300'
+                }`}>
+                  기본 전력
+                </span>
+              </div>
+              <p className={`text-xs leading-relaxed ${
+                selectedStance === 'BALANCED' ? 'text-neutral-200 dark:text-neutral-800' : 'text-neutral-600 dark:text-neutral-300'
+              }`}>
+                안정적인 전력을 유지하며 무리한 혹사나 단기 성적 희생 없이 정상적인 육성과 경기력을 병행합니다.
+              </p>
+            </div>
+            <div className={`mt-3 pt-2.5 border-t text-[11px] font-medium ${
+              selectedStance === 'BALANCED'
+                ? 'border-white/20 dark:border-black/20 text-neutral-300 dark:text-neutral-700'
+                : 'border-black/[0.06] dark:border-white/[0.06] text-neutral-500 dark:text-neutral-400'
+            }`}>
+              ✓ 후폭풍 1단계 자연 회복, 표준 에이징 커브 유지
+            </div>
+          </button>
+
+          {/* 3. 리빌딩 */}
+          <button
+            type="button"
+            onClick={() => setSelectedStance('REBUILDING')}
+            className={`p-4 rounded-2xl border text-left transition-all flex flex-col justify-between ${
+              selectedStance === 'REBUILDING'
+                ? 'bg-emerald-500/10 border-emerald-500 ring-2 ring-emerald-500/30 shadow-md dark:bg-emerald-400/10 dark:border-emerald-400'
+                : 'bg-neutral-50 hover:bg-neutral-100/70 dark:bg-white/[0.02] dark:hover:bg-white/[0.04] border-neutral-200/80 dark:border-white/[0.06]'
+            }`}
+          >
+            <div>
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-base font-bold text-neutral-900 dark:text-white flex items-center gap-1.5">
+                  🌱 전면 리빌딩 (Rebuild)
+                </span>
+                <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-500 text-white dark:bg-emerald-400 dark:text-neutral-950">
+                  전력 -4
+                </span>
+              </div>
+              <p className="text-xs text-neutral-600 dark:text-neutral-300 leading-relaxed">
+                당해 시즌 우승 확률을 양보하고, <b>유망주 실전 출전 보장 및 미래 왕조</b>를 위해 투자합니다.
+              </p>
+            </div>
+            <div className="mt-3 pt-2.5 border-t border-black/[0.06] dark:border-white/[0.06] text-[11px] text-emerald-600 dark:text-emerald-400 font-medium">
+              ✨ <b>점진적 누적 효과</b>: 28세 이하 유망주 전원 대폭 성장 (+2~+5 OVR), 팜 시스템 급상승, 특급 신인 발굴
+            </div>
+          </button>
+        </div>
+      </div>
+
       {/* 섹션 1: 4개의 외국인 엔트리 슬롯 */}
       <div className="apple-card rounded-3xl p-5 space-y-4">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-black/[0.06] dark:border-white/[0.06] pb-3 gap-2">
           <div>
             <h3 className="font-bold text-base text-neutral-900 dark:text-white flex items-center gap-2">
-              <span>📋 2026 우리 구단 외국인 엔트리 (총 4명)</span>
+              <span>📋 {currentYear} 우리 구단 외국인 엔트리 (총 4명)</span>
             </h3>
             <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-0.5">
               현재 구성: 투수 <b>{pitcherCount}명</b> / 타자 <b>{batterCount}명</b>

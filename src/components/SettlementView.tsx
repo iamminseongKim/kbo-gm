@@ -74,9 +74,48 @@ export const SettlementView: React.FC<SettlementViewProps> = ({
           <div className="flex items-center justify-between">
             <span className="text-neutral-600 dark:text-neutral-400 font-medium">차기 시즌 예산 배정</span>
             <span className="font-bold text-neutral-900 dark:text-white font-mono">
-              +40억원 (지원금 및 수익 배분)
+              +45억원 (지원금 및 수익 배분)
             </span>
           </div>
+        </div>
+
+        {/* 구단 운영 기조 결산 & 차기 시즌 영향 리포트 */}
+        <div className={`p-4 rounded-2xl border text-xs space-y-1.5 ${
+          team.stance === 'WIN_NOW'
+            ? 'bg-amber-50/70 dark:bg-amber-950/20 border-amber-200/80 dark:border-amber-800/40 text-amber-900 dark:text-amber-200'
+            : team.stance === 'REBUILDING'
+            ? 'bg-emerald-50/70 dark:bg-emerald-950/20 border-emerald-200/80 dark:border-emerald-800/40 text-emerald-900 dark:text-emerald-200'
+            : 'bg-neutral-50 dark:bg-white/[0.03] border-neutral-200/80 dark:border-white/[0.06] text-neutral-800 dark:text-neutral-200'
+        }`}>
+          <div className="flex items-center justify-between font-bold">
+            <span className="flex items-center gap-1.5 text-sm">
+              {team.stance === 'WIN_NOW' && '🏆 윈나우(Win-Now) 기조 결산'}
+              {team.stance === 'REBUILDING' && '🌱 리빌딩(Rebuilding) 기조 결산'}
+              {(!team.stance || team.stance === 'BALANCED') && '⚖️ 투트랙 밸런스 운영 결산'}
+            </span>
+            <span className="text-[11px] font-mono px-2 py-0.5 rounded-full bg-white dark:bg-black/40 border border-current">
+              {team.stance === 'WIN_NOW' && `⚡ 후폭풍 ${team.winNowDebt || 1}단계 누적`}
+              {team.stance === 'REBUILDING' && `✨ 리빌딩 ${team.rebuildingStack || 1}년차 누적`}
+              {(!team.stance || team.stance === 'BALANCED') && '안정적 기조 유지'}
+            </span>
+          </div>
+          <p className="text-xs leading-relaxed opacity-90">
+            {team.stance === 'WIN_NOW' && (
+              <>
+                올 시즌 우승을 위해 모든 전력을 집중시켰습니다. 그러나 무리한 연투와 출전으로 인해 <b>차기 시즌 베테랑 에이징 커브 가속(추가 하락) 및 팜 피로도</b> 후폭풍이 발생합니다.
+              </>
+            )}
+            {team.stance === 'REBUILDING' && (
+              <>
+                단기 우승을 양보하고 미래 왕조를 위해 유망주 출전 기회를 극대화했습니다! <b>다음 시즌 스토브리그에서 28세 이하 영건 전원이 대폭 성장(+2~+5 OVR)</b>하여 전력 폭발이 시작됩니다!
+              </>
+            )}
+            {(!team.stance || team.stance === 'BALANCED') && (
+              <>
+                무리한 베팅이나 성적 희생 없이 균형 있게 시즌을 마쳤습니다. 누적된 후폭풍이 경감되며 정상적인 성장 곡선이 이어집니다.
+              </>
+            )}
+          </p>
         </div>
 
         {/* 해고 알림 또는 경고 */}

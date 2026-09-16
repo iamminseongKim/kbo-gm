@@ -8,7 +8,8 @@ import {
   StandingsRecord,
   SeasonSummary,
   ForeignCandidate,
-  RookieProspect
+  RookieProspect,
+  TeamStance
 } from './types'
 import { KBO_TEAMS } from './data/teams'
 import { INITIAL_PLAYERS } from './data/players'
@@ -22,6 +23,8 @@ import {
   generateRookieProspects,
   convertRookieToPlayer
 } from './engine/player_generator'
+import { advanceSeasonAndApplyAging } from './engine/aging'
+import { assignSeasonPlayerForms } from './engine/form'
 
 import { Header } from './components/Header'
 import { RosterModal } from './components/RosterModal'
@@ -91,14 +94,19 @@ export default function App() {
     setIsFired(false)
     setFiredReason('')
     setTeams(JSON.parse(JSON.stringify(KBO_TEAMS)))
-    setPlayers(JSON.parse(JSON.stringify(INITIAL_PLAYERS)))
+
+    // 시즌 1 선수들에게 초기 폼(대폭발 / 슬럼프 / 상승 / 부진) 부여
+    const initPrng = new PRNG(`${customSeed}_season_1_forms`)
+    const basePlayers = JSON.parse(JSON.stringify(INITIAL_PLAYERS))
+    const playersWithForms = assignSeasonPlayerForms(basePlayers, initPrng)
+    setPlayers(playersWithForms)
 
     initSeason(1, customSeed)
     setPhase('STOVE_LEAGUE')
   }
 
   // 시즌 초기화 헬퍼
-  const initSeason = (seasonNum: number, currentSeed: string) => {
+  const initSeason = (seasonNum: number, currentSeed: string, currentRebuildStack = 0) => {
     const prng = new PRNG(`${currentSeed}_season_${seasonNum}`)
 
     // 환경 카드 추첨
@@ -109,8 +117,8 @@ export default function App() {
     const foreigners = generateForeignCandidates(prng, seasonNum)
     setForeignCandidates(foreigners)
 
-    // 신인 드래프트 3인 생성
-    const rookies = generateRookieProspects(prng, seasonNum)
+    // 신인 드래프트 3인 생성 (리빌딩 누적 시 특급 스카우팅 보너스)
+    const rookies = generateRookieProspects(prng, seasonNum, currentRebuildStack)
     setRookieProspects(rookies)
 
     // 전반기 / 후반기 이벤트 2개 추첨
@@ -140,13 +148,14 @@ export default function App() {
     }
   }
 
-  // [Phase 1] 스토브리그 전체 결정 확정 (외인 4인 슬롯, 베테랑 방출, 예산 및 전력 반영)
+  // [Phase 1] 스토브리그 전체 결정 확정 (구단 기조, 외인 4인 슬롯, 베테랑 방출, 예산 및 전력 반영)
   const handleFinalizeStoveLeague = (
     finalForeignPlayers: Player[],
     releasedPlayerIds: string[],
     netBudgetDelta: number,
     powerPenalty: number,
-    fanPenalty: number
+    fanPenalty: number,
+    stance: TeamStance
   ) => {
     // 1. 베테랑 방출 및 외인 명단 갱신
     setPlayers(prev => {
@@ -156,15 +165,38 @@ export default function App() {
       return [...withoutUserForeignsAndReleased, ...finalForeignPlayers]
     })
 
-    // 2. 예산 및 팬심 반영
-    setTeams(prev => ({
-      ...prev,
-      [userTeamId]: {
-        ...prev[userTeamId],
-        budget: prev[userTeamId].budget + netBudgetDelta,
-        fanSupport: Math.min(100, Math.max(0, prev[userTeamId].fanSupport - fanPenalty))
+    // 2. 예산, 팬심, 구단 기조 및 후폭풍/육성 누적 반영
+    setTeams(prev => {
+      const cur = prev[userTeamId]
+      let newWinNowDebt = cur.winNowDebt || 0
+      let newRebuildStack = cur.rebuildingStack || 0
+      let newFarm = cur.farmSystem
+
+      if (stance === 'WIN_NOW') {
+        newWinNowDebt += 1
+        newRebuildStack = 0 // 윈나우 선회 시 리빌딩 누적 초기화
+        newFarm = Math.max(20, newFarm - 5) // 팜 소모
+      } else if (stance === 'REBUILDING') {
+        newRebuildStack += 1
+        newWinNowDebt = Math.max(0, newWinNowDebt - 1)
+        newFarm = Math.min(100, newFarm + 15) // 팜 집중 육성
+      } else {
+        newWinNowDebt = Math.max(0, newWinNowDebt - 1) // 밸런스 시 후폭풍 자연 경감
       }
-    }))
+
+      return {
+        ...prev,
+        [userTeamId]: {
+          ...cur,
+          stance,
+          winNowDebt: newWinNowDebt,
+          rebuildingStack: newRebuildStack,
+          farmSystem: newFarm,
+          budget: cur.budget + netBudgetDelta,
+          fanSupport: Math.min(100, Math.max(0, cur.fanSupport - fanPenalty))
+        }
+      }
+    })
 
     // 3. 외인 미사용 공백 페널티 적용 (팀 전력 대폭 하락)
     if (powerPenalty > 0) {
@@ -250,12 +282,28 @@ export default function App() {
     const draws = userStanding?.draws || 0
     const winRate = userStanding?.winRate || 0
 
-    // 구단주 및 팬 평가 변화
+    // 구단주 및 팬 평가 변화 (기조에 따른 관용/엄격함 차등 적용)
     let trustDelta = rank <= 5 ? 12 : -15
     let fanDelta = rank <= 5 ? 15 : -10
+
+    if (userTeam.stance === 'REBUILDING') {
+      if (rank > 5) {
+        trustDelta = -5 // 리빌딩 선언 구단은 단기 부진에 대해 정상 참작
+        fanDelta = -4
+      } else {
+        trustDelta = 20 // 리빌딩 중 5강 돌풍 시 파격적 보너스
+        fanDelta = 25
+      }
+    } else if (userTeam.stance === 'WIN_NOW') {
+      if (rank > 5) {
+        trustDelta = -22 // 윈나우 선언 후 가을야구 탈락 시 혹독한 책임 추궁
+        fanDelta = -18
+      }
+    }
+
     if (postseasonResult.includes('우승!')) {
-      trustDelta += 18
-      fanDelta += 25
+      trustDelta += 20
+      fanDelta += 30
     }
 
     const newOwnerTrust = Math.min(100, Math.max(0, userTeam.ownerTrust + trustDelta))
@@ -310,8 +358,18 @@ export default function App() {
   // [Phase 9 -> 차기 시즌 스토브리그]
   const handleNextSeason = () => {
     const nextSeason = season + 1
+    const prng = new PRNG(`${seed}_aging_s${nextSeason}`)
+
+    // 1. 나이 1살 증가 및 에이징 커브 / 리빌딩 특급 성장 / 윈나우 후폭풍 적용
+    const { updatedPlayers } = advanceSeasonAndApplyAging(players, teams, prng, nextSeason)
+
+    // 2. 차기 시즌 선수단 컨디션 / 슬럼프(Form) 부여
+    const finalPlayers = assignSeasonPlayerForms(updatedPlayers, prng)
+    setPlayers(finalPlayers)
+
     setSeason(nextSeason)
-    initSeason(nextSeason, seed)
+    const currentRebuild = teams[userTeamId]?.rebuildingStack || 0
+    initSeason(nextSeason, seed, currentRebuild)
     setPhase('STOVE_LEAGUE')
   }
 
@@ -432,9 +490,10 @@ export default function App() {
               />
             )}
 
-            {/* 2. 스토브리그 (선수단 정리 & 외인 영입) */}
+            {/* 2. 스토브리그 (구단 기조 & 외인 영입) */}
             {phase === 'STOVE_LEAGUE' && (
               <StoveLeagueView
+                season={season}
                 team={userTeam}
                 players={players}
                 candidates={foreignCandidates}
@@ -554,6 +613,7 @@ export default function App() {
         onClose={() => setIsRosterOpen(false)}
         team={userTeam}
         players={players}
+        season={season}
       />
     </div>
   )

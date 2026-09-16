@@ -17,6 +17,8 @@ export interface PitcherStats {
   stamina: number   // 체력 (0-100)
 }
 
+export type PlayerForm = 'HOT' | 'GOOD' | 'NORMAL' | 'COLD' | 'SLUMP'
+
 export interface Player {
   id: string
   name: string
@@ -35,7 +37,13 @@ export interface Player {
   isRookie?: boolean
   isInjured?: boolean
   injuryWeeks?: number
+  lastSeasonDelta?: number
+  form?: PlayerForm
+  formDelta?: number
+  formReason?: string
 }
+
+export type TeamStance = 'WIN_NOW' | 'BALANCED' | 'REBUILDING'
 
 export interface Team {
   id: string
@@ -52,6 +60,9 @@ export interface Team {
   homePark: string
   difficulty: '쉬움' | '보통' | '어려움'
   description: string
+  stance?: TeamStance // 현재 시즌 기조 ('WIN_NOW' | 'BALANCED' | 'REBUILDING')
+  winNowDebt?: number // 윈나우 후폭풍/리바운드 누적치 (0, 1, 2...)
+  rebuildingStack?: number // 리빌딩 누적 연차 (0, 1, 2...)
 }
 
 export interface StandingsRecord {

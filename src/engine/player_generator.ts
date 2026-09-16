@@ -216,33 +216,37 @@ export function generateForeignCandidates(prng: PRNG, season: number): ForeignCa
   return candidates
 }
 
-export function generateRookieProspects(prng: PRNG, season: number): RookieProspect[] {
+export function generateRookieProspects(prng: PRNG, season: number, rebuildStack = 0): RookieProspect[] {
   const prospects: RookieProspect[] = []
+  const statBoost = Math.min(5, rebuildStack * 2)
+  const bonusDiscount = Math.min(3, rebuildStack)
 
   // 1. 전체 1순위급 초고교급 파이어볼러 (SP)
   const p1Name = `${prng.choice(KOREAN_SURNAMES)}${prng.choice(KOREAN_FIRST_NAMES)}`
   const p1School = prng.choice(HIGH_SCHOOLS)
-  const p1Stuff = prng.nextInt(82, 87)
-  const p1Control = prng.nextInt(74, 80)
+  const p1Stuff = prng.nextInt(82, 87) + statBoost
+  const p1Control = prng.nextInt(74, 80) + statBoost
   prospects.push({
     id: `rookie_${season}_1`,
     name: p1Name,
     position: 'SP',
     age: 19,
     school: p1School,
-    signingBonus: 8, // 8억원
-    scoutSummary: '최고 154km를 마크하는 아마추어 최대어. 향후 10년간 국가대표 에이스를 책임질 특급 파이어볼러.',
+    signingBonus: Math.max(3, 8 - bonusDiscount),
+    scoutSummary: rebuildStack > 0
+      ? `[리빌딩 집중 스카우팅] 최고 157km 강속구를 던지는 세기의 대어. 팜 시스템 집중 투자로 조기 1군 완성형.`
+      : '최고 154km를 마크하는 아마추어 최대어. 향후 10년간 국가대표 에이스를 책임질 특급 파이어볼러.',
     isPitcher: true,
     pitcherStats: {
       stuff: p1Stuff,
       control: p1Control,
-      breaking: prng.nextInt(75, 82),
+      breaking: prng.nextInt(75, 82) + statBoost,
       clutch: prng.nextInt(72, 80),
       stamina: prng.nextInt(80, 86)
     },
     overall: Math.round((p1Stuff + p1Control) / 2),
     potential: 'S',
-    traits: ['154km 파이어볼러', '초고교급 최대어', '탈삼진 본능']
+    traits: rebuildStack > 0 ? ['157km 괴물투수', '세기의 재능', '초고교급 최대어'] : ['154km 파이어볼러', '초고교급 최대어', '탈삼진 본능']
   })
 
   // 2. 대학 최고의 대형 내야수/포수 (즉시전력감)
@@ -252,27 +256,29 @@ export function generateRookieProspects(prng: PRNG, season: number): RookieProsp
   }
   const p2School = prng.choice(UNIVERSITIES)
   const p2Pos = prng.choice(['SS', 'C', '3B'] as Position[])
-  const p2Contact = prng.nextInt(78, 83)
-  const p2Power = prng.nextInt(76, 82)
+  const p2Contact = prng.nextInt(78, 83) + statBoost
+  const p2Power = prng.nextInt(76, 82) + statBoost
   prospects.push({
     id: `rookie_${season}_2`,
     name: p2Name,
     position: p2Pos,
     age: 23,
     school: p2School,
-    signingBonus: 5, // 5억원
-    scoutSummary: '대학 리그를 평정한 타격왕 출신. 타석에서의 침착함과 탄탄한 수비로 당장 1군 주전 도약이 가능한 자원.',
+    signingBonus: Math.max(2, 5 - bonusDiscount),
+    scoutSummary: rebuildStack > 0
+      ? `[리빌딩 집중 스카우팅] 대학 통산 4할 20홈런의 완성형 5툴 내야수. 즉시 1군 주전 활약 가능.`
+      : '대학 리그를 평정한 타격왕 출신. 타석에서의 침착함과 탄탄한 수비로 당장 1군 주전 도약이 가능한 자원.',
     isPitcher: false,
     batterStats: {
       contact: p2Contact,
       power: p2Power,
-      eye: prng.nextInt(80, 86),
+      eye: prng.nextInt(80, 86) + statBoost,
       speed: prng.nextInt(72, 80),
-      defense: prng.nextInt(78, 85),
+      defense: prng.nextInt(78, 85) + statBoost,
       stamina: prng.nextInt(80, 88)
     },
     overall: Math.round((p2Contact + p2Power) / 2),
-    potential: 'A+',
+    potential: rebuildStack >= 2 ? 'S' : 'A+',
     traits: ['대학 타격왕', '수비 완성형', '즉시 전력감']
   })
 
@@ -282,15 +288,15 @@ export function generateRookieProspects(prng: PRNG, season: number): RookieProsp
     p3Name = `${prng.choice(KOREAN_SURNAMES)}${prng.choice(KOREAN_FIRST_NAMES)}`
   }
   const p3School = prng.choice(HIGH_SCHOOLS)
-  const p3Contact = prng.nextInt(72, 78)
-  const p3Power = prng.nextInt(74, 80)
+  const p3Contact = prng.nextInt(72, 78) + statBoost
+  const p3Power = prng.nextInt(74, 80) + statBoost
   prospects.push({
     id: `rookie_${season}_3`,
     name: p3Name,
     position: 'OF',
     age: 19,
     school: p3School,
-    signingBonus: 3, // 3억원
+    signingBonus: Math.max(1, 3 - bonusDiscount),
     scoutSummary: '발 빠르고 어깨 강한 5툴 유망주. 타격 폼을 가다듬으면 호타준족의 리그 대표 외야수로 성장 가능.',
     isPitcher: false,
     batterStats: {

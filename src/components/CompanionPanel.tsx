@@ -88,8 +88,40 @@ export const CompanionPanel: React.FC<CompanionPanelProps> = ({
             </div>
           </div>
 
-          {/* 종합 오버롤 토큰 */}
+          {/* 종합 오버롤 토큰 및 에이징/성장 변동 뱃지 */}
           <div className="flex items-center gap-1.5 shrink-0">
+            {/* 에이징 / 성장 변동폭 */}
+            {p.lastSeasonDelta !== undefined && p.lastSeasonDelta !== 0 && (
+              <span className={`text-[10px] font-bold font-mono px-1.5 py-0.5 rounded-md border ${
+                p.lastSeasonDelta > 0
+                  ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-400 border-emerald-300/80 dark:border-emerald-800'
+                  : 'bg-red-100 text-red-700 dark:bg-red-950/60 dark:text-red-400 border-red-300/80 dark:border-red-800'
+              }`}>
+                {p.lastSeasonDelta > 0 ? `▲+${p.lastSeasonDelta}` : `▼${p.lastSeasonDelta}`}
+              </span>
+            )}
+
+            {/* 당해 시즌 컨디션 / 슬럼프 뱃지 */}
+            {p.form && p.form !== 'NORMAL' && (
+              <span
+                className={`text-[10px] font-bold px-1.5 py-0.5 rounded-md border flex items-center gap-0.5 cursor-help ${
+                  p.form === 'HOT'
+                    ? 'bg-orange-100 text-orange-700 dark:bg-orange-950/60 dark:text-orange-300 border-orange-300/80 dark:border-orange-700'
+                    : p.form === 'GOOD'
+                    ? 'bg-amber-100 text-amber-700 dark:bg-amber-950/60 dark:text-amber-300 border-amber-300/80 dark:border-amber-700'
+                    : p.form === 'COLD'
+                    ? 'bg-sky-100 text-sky-700 dark:bg-sky-950/60 dark:text-sky-300 border-sky-300/80 dark:border-sky-700'
+                    : 'bg-indigo-100 text-indigo-700 dark:bg-indigo-950/60 dark:text-indigo-300 border-indigo-300/80 dark:border-indigo-700'
+                }`}
+                title={p.formReason || ''}
+              >
+                {p.form === 'HOT' && '🔥 폭발'}
+                {p.form === 'GOOD' && '⚡ 상승'}
+                {p.form === 'COLD' && '💧 부진'}
+                {p.form === 'SLUMP' && '❄️ 슬럼프'}
+              </span>
+            )}
+
             <span className={`text-[10px] font-bold font-mono px-1.5 py-0.5 rounded-md ${rating.pill}`}>
               {rating.tier}
             </span>
@@ -222,6 +254,39 @@ export const CompanionPanel: React.FC<CompanionPanelProps> = ({
             <div className="text-sm font-bold text-neutral-900 dark:text-white mt-0.5">{team.farmSystem}</div>
           </div>
         </div>
+
+        {/* 구단 운영 기조 및 후폭풍/육성 누적 현황 */}
+        <div className="flex items-center justify-between pt-3 mt-1 border-t border-black/[0.04] dark:border-white/[0.04] text-[11px]">
+          <div className="flex items-center gap-1.5 font-semibold">
+            <span className="text-neutral-500 dark:text-neutral-400">구단 기조:</span>
+            {team.stance === 'WIN_NOW' ? (
+              <span className="px-2 py-0.5 rounded-md bg-amber-100 text-amber-800 dark:bg-amber-400/20 dark:text-amber-300 border border-amber-300/80 font-bold">
+                🏆 윈나우 (전력 +4)
+              </span>
+            ) : team.stance === 'REBUILDING' ? (
+              <span className="px-2 py-0.5 rounded-md bg-emerald-100 text-emerald-800 dark:bg-emerald-400/20 dark:text-emerald-300 border border-emerald-300/80 font-bold">
+                🌱 리빌딩 (유망주 누적)
+              </span>
+            ) : (
+              <span className="px-2 py-0.5 rounded-md bg-neutral-100 text-neutral-700 dark:bg-white/10 dark:text-neutral-300 border border-neutral-300/80 font-medium">
+                ⚖️ 투트랙 밸런스
+              </span>
+            )}
+          </div>
+
+          <div className="flex items-center gap-1.5 font-mono text-[10px]">
+            {team.winNowDebt && team.winNowDebt > 0 ? (
+              <span className="text-red-500 dark:text-red-400 font-bold px-1.5 py-0.5 rounded bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-800/40" title="윈나우 연투로 인한 베테랑 혹사 및 차기 에이징 급락 위험">
+                ⚡후폭풍 {team.winNowDebt}단계
+              </span>
+            ) : null}
+            {team.rebuildingStack && team.rebuildingStack > 0 ? (
+              <span className="text-emerald-600 dark:text-emerald-400 font-bold px-1.5 py-0.5 rounded bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800/40" title="유망주 실전 출전 누적으로 시즌 후 폭풍 성장 대기">
+                🌱누적 {team.rebuildingStack}년차
+              </span>
+            ) : null}
+          </div>
+        </div>
       </div>
 
       {/* 탭 네비게이션 */}
@@ -251,7 +316,7 @@ export const CompanionPanel: React.FC<CompanionPanelProps> = ({
           </div>
 
           <span className="text-[11px] text-neutral-500 dark:text-neutral-400 font-medium">
-            {activeTab === 'roster' ? '2026 공식 등록 엔트리' : '144경기 기준'}
+            {activeTab === 'roster' ? `${2025 + (season || 1)}년 공식 등록 엔트리` : '144경기 기준'}
           </span>
         </div>
 

@@ -45,4 +45,16 @@ export class PRNG {
     }
     return result
   }
+
+  // 배열 셔플 (Fisher-Yates)
+  shuffle<T>(array: T[]): T[] {
+    const copy = [...array]
+    for (let i = copy.length - 1; i > 0; i--) {
+      const j = this.nextInt(0, i)
+      const temp = copy[i]
+      copy[i] = copy[j]
+      copy[j] = temp
+    }
+    return copy
+  }
 }

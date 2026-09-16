@@ -6,13 +6,15 @@ interface RosterModalProps {
   onClose: () => void
   team: Team
   players: Player[]
+  season?: number
 }
 
 export const RosterModal: React.FC<RosterModalProps> = ({
   isOpen,
   onClose,
   team,
-  players
+  players,
+  season = 1
 }) => {
   const [tab, setTab] = useState<'all' | 'pitcher' | 'batter'>('all')
 
@@ -64,7 +66,7 @@ export const RosterModal: React.FC<RosterModalProps> = ({
               style={{ backgroundColor: team.primaryColor }}
             />
             <h3 className="font-bold text-neutral-900 dark:text-white text-base tracking-tight">
-              {team.name} 2026 공식 엔트리 ({teamPlayers.length}명)
+              {team.name} {2025 + season}년 공식 엔트리 ({teamPlayers.length}명)
             </h3>
           </div>
           <button
@@ -146,6 +148,38 @@ export const RosterModal: React.FC<RosterModalProps> = ({
                   </div>
 
                   <div className="flex items-center gap-1.5 shrink-0">
+                    {/* 에이징 / 성장 변동폭 */}
+                    {p.lastSeasonDelta !== undefined && p.lastSeasonDelta !== 0 && (
+                      <span className={`text-[10px] font-bold font-mono px-1.5 py-0.5 rounded-md border ${
+                        p.lastSeasonDelta > 0
+                          ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-400 border-emerald-300/80 dark:border-emerald-800'
+                          : 'bg-red-100 text-red-700 dark:bg-red-950/60 dark:text-red-400 border-red-300/80 dark:border-red-800'
+                      }`}>
+                        {p.lastSeasonDelta > 0 ? `▲+${p.lastSeasonDelta}` : `▼${p.lastSeasonDelta}`}
+                      </span>
+                    )}
+
+                    {/* 컨디션 / 슬럼프 뱃지 */}
+                    {p.form && p.form !== 'NORMAL' && (
+                      <span
+                        className={`text-[10px] font-bold px-1.5 py-0.5 rounded-md border flex items-center gap-0.5 ${
+                          p.form === 'HOT'
+                            ? 'bg-orange-100 text-orange-700 dark:bg-orange-950/60 dark:text-orange-300 border-orange-300/80 dark:border-orange-700'
+                            : p.form === 'GOOD'
+                            ? 'bg-amber-100 text-amber-700 dark:bg-amber-950/60 dark:text-amber-300 border-amber-300/80 dark:border-amber-700'
+                            : p.form === 'COLD'
+                            ? 'bg-sky-100 text-sky-700 dark:bg-sky-950/60 dark:text-sky-300 border-sky-300/80 dark:border-sky-700'
+                            : 'bg-indigo-100 text-indigo-700 dark:bg-indigo-950/60 dark:text-indigo-300 border-indigo-300/80 dark:border-indigo-700'
+                        }`}
+                        title={p.formReason || ''}
+                      >
+                        {p.form === 'HOT' && '🔥 폭발'}
+                        {p.form === 'GOOD' && '⚡ 상승'}
+                        {p.form === 'COLD' && '💧 부진'}
+                        {p.form === 'SLUMP' && '❄️ 슬럼프'}
+                      </span>
+                    )}
+
                     <span className={`text-[10px] font-bold font-mono px-1.5 py-0.5 rounded-md ${rating.pill}`}>
                       {rating.tier}
                     </span>
