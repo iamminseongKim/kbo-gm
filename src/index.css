@@ -1,0 +1,120 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply antialiased selection:bg-neutral-500/30;
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Helvetica Neue", Arial, sans-serif;
+    letter-spacing: -0.015em;
+  }
+}
+
+/* Apple-style translucent glass */
+.apple-glass {
+  background: rgba(22, 22, 24, 0.72);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.apple-card {
+  background: #121214;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  transition: border-color 0.2s cubic-bezier(0.16, 1, 0.3, 1), transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), background-color 0.2s ease;
+}
+
+.apple-card:hover {
+  border-color: rgba(255, 255, 255, 0.16);
+}
+
+/* Apple-style primary pill button */
+.apple-button-primary {
+  @apply bg-white text-black font-semibold rounded-full py-3 px-6 transition-all duration-200 active:scale-[0.98] hover:bg-[#e8e8ed] shadow-sm;
+}
+
+.apple-button-secondary {
+  @apply bg-white/10 text-white font-semibold rounded-full py-3 px-6 border border-white/10 transition-all duration-200 active:scale-[0.98] hover:bg-white/15;
+}
+
+/* Apple Light Mode Theme Overrides */
+.light {
+  background-color: #f5f5f7;
+  color: #1d1d1f;
+}
+
+.light .apple-glass {
+  background: rgba(255, 255, 255, 0.85) !important;
+  border: 1px solid rgba(0, 0, 0, 0.08) !important;
+}
+
+.light .apple-card {
+  background: #ffffff !important;
+  border: 1px solid rgba(0, 0, 0, 0.08) !important;
+  box-shadow: 0 2px 14px rgba(0, 0, 0, 0.04) !important;
+}
+
+.light .apple-card:hover {
+  border-color: rgba(0, 0, 0, 0.18) !important;
+}
+
+.light .apple-button-primary {
+  background-color: #000000 !important;
+  color: #ffffff !important;
+}
+
+.light .apple-button-primary:hover {
+  background-color: #2c2c2e !important;
+}
+
+.light .apple-button-secondary {
+  background-color: rgba(0, 0, 0, 0.05) !important;
+  color: #1d1d1f !important;
+  border-color: rgba(0, 0, 0, 0.1) !important;
+}
+
+.light .apple-button-secondary:hover {
+  background-color: rgba(0, 0, 0, 0.08) !important;
+}
+
+/* Light mode typography default hierarchy */
+.light h1, .light h2, .light h3, .light h4 {
+  color: #1d1d1f;
+}
+
+/* Fail-safe text contrast rules for Light Mode: ensure dark buttons always have pure white text */
+.light .apple-button-primary,
+.light .apple-button-primary *,
+.light button.bg-black,
+.light button.bg-black *,
+.light button.bg-neutral-900,
+.light button.bg-neutral-900 *,
+.light .bg-black:not(.text-black),
+.light .bg-black:not(.text-black) *,
+.light .bg-neutral-900:not(.text-black),
+.light .bg-neutral-900:not(.text-black) * {
+  color: #ffffff !important;
+}
+
+/* Minimalist scrollbar */
+::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.12);
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.24);
+}
+
+.light ::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.14);
+}
+.light ::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 0, 0, 0.25);
+}
