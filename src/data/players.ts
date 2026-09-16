@@ -165,6 +165,33 @@ export const INITIAL_PLAYERS: Player[] = [
     traits: ['슈퍼스타', '5툴 플레이어', '30-30 클럽', '제2의 이종범'],
     batterStats: { contact: 95, power: 96, eye: 91, speed: 98, defense: 86, stamina: 92 }
   },
+  {
+    id: 'kia_yoon_youngcheol',
+    name: '윤영철',
+    teamId: 'kia',
+    position: 'SP',
+    age: 22,
+    salary: 3,
+    contractYears: 4,
+    isPitcher: true,
+    overall: 84,
+    traits: ['좌완 기교파', '칼날 제구', '영건 선발'],
+    pitcherStats: { stuff: 79, control: 89, breaking: 87, clutch: 84, stamina: 85 }
+  },
+  {
+    id: 'kia_jeon_sanghyun',
+    name: '전상현',
+    teamId: 'kia',
+    position: 'RP',
+    age: 30,
+    salary: 5,
+    contractYears: 2,
+    isPitcher: true,
+    overall: 87,
+    traits: ['필승조 셋업맨', '슬라이더 장인', '탈삼진'],
+    pitcherStats: { stuff: 90, control: 86, breaking: 88, clutch: 88, stamina: 82 }
+  },
+
 
   // ==========================================
   // 2. 삼성 라이온즈 (2026)
@@ -317,6 +344,46 @@ export const INITIAL_PLAYERS: Player[] = [
     traits: ['내야 유틸리티', '투지 넘치는 플레이', '분위기 메이커'],
     batterStats: { contact: 84, power: 72, eye: 86, speed: 78, defense: 88, stamina: 86 }
   },
+  {
+    id: 'samsung_lee_seunghyun',
+    name: '이승현',
+    teamId: 'samsung',
+    position: 'SP',
+    age: 24,
+    salary: 3,
+    contractYears: 3,
+    isPitcher: true,
+    overall: 85,
+    traits: ['좌완 영건 선발', '탈삼진 머신', '라이온즈 미래'],
+    pitcherStats: { stuff: 89, control: 82, breaking: 88, clutch: 83, stamina: 86 }
+  },
+  {
+    id: 'samsung_oh_seunghwan',
+    name: '오승환',
+    teamId: 'samsung',
+    position: 'RP',
+    age: 44,
+    salary: 7,
+    contractYears: 1,
+    isPitcher: true,
+    overall: 83,
+    traits: ['돌부처', '끝판대장', 'KBO 통산 세이브 1위', '살아있는 전설'],
+    pitcherStats: { stuff: 84, control: 88, breaking: 82, clutch: 95, stamina: 75 }
+  },
+  {
+    id: 'samsung_kim_taehoon',
+    name: '김태훈',
+    teamId: 'samsung',
+    position: 'RP',
+    age: 34,
+    salary: 4,
+    contractYears: 1,
+    isPitcher: true,
+    overall: 82,
+    traits: ['베테랑 필승조', '체인지업', '땅볼 유도'],
+    pitcherStats: { stuff: 82, control: 83, breaking: 84, clutch: 82, stamina: 80 }
+  },
+
 
   // ==========================================
   // 3. LG 트윈스 (2026)
@@ -469,6 +536,46 @@ export const INITIAL_PLAYERS: Player[] = [
     traits: ['잠실 그물망 외야', '대도', '스피드스타'],
     batterStats: { contact: 81, power: 65, eye: 82, speed: 96, defense: 97, stamina: 90 }
   },
+  {
+    id: 'lg_yoo_youngchan',
+    name: '유영찬',
+    teamId: 'lg',
+    position: 'CP',
+    age: 29,
+    salary: 5,
+    contractYears: 3,
+    isPitcher: true,
+    overall: 88,
+    traits: ['트윈스 수호신', '낙차 큰 포크볼', '철벽 마무리'],
+    pitcherStats: { stuff: 90, control: 87, breaking: 91, clutch: 90, stamina: 84 }
+  },
+  {
+    id: 'lg_jung_wooyoung',
+    name: '정우영',
+    teamId: 'lg',
+    position: 'RP',
+    age: 27,
+    salary: 5,
+    contractYears: 2,
+    isPitcher: true,
+    overall: 84,
+    traits: ['153km 사이드암 투심', '땅볼 유도 기계', '홀드왕 출신'],
+    pitcherStats: { stuff: 92, control: 78, breaking: 85, clutch: 84, stamina: 83 }
+  },
+  {
+    id: 'lg_baek_seunghyun',
+    name: '백승현',
+    teamId: 'lg',
+    position: 'RP',
+    age: 31,
+    salary: 3,
+    contractYears: 2,
+    isPitcher: true,
+    overall: 83,
+    traits: ['강속구 셋업맨', '슬라이더', '추격조 핵심'],
+    pitcherStats: { stuff: 88, control: 80, breaking: 83, clutch: 82, stamina: 81 }
+  },
+
 
   // ==========================================
   // 4. 두산 베어스 (2026)
@@ -634,6 +741,46 @@ export const INITIAL_PLAYERS: Player[] = [
     traits: ['토종 에이스', '다승왕', '파이어볼러', '탈삼진 머신'],
     pitcherStats: { stuff: 94, control: 86, breaking: 89, clutch: 89, stamina: 91 }
   },
+  {
+    id: 'doosan_lee_youngha',
+    name: '이영하',
+    teamId: 'doosan',
+    position: 'RP',
+    age: 29,
+    salary: 5,
+    contractYears: 2,
+    isPitcher: true,
+    overall: 85,
+    traits: ['152km 묵직한 구위', '불펜 에이스', '포크볼러'],
+    pitcherStats: { stuff: 91, control: 81, breaking: 85, clutch: 85, stamina: 85 }
+  },
+  {
+    id: 'doosan_hong_geonhee',
+    name: '홍건희',
+    teamId: 'doosan',
+    position: 'RP',
+    age: 34,
+    salary: 6,
+    contractYears: 1,
+    isPitcher: true,
+    overall: 83,
+    traits: ['베테랑 필승조', '클러치 마운드', '150km 패스트볼'],
+    pitcherStats: { stuff: 87, control: 82, breaking: 82, clutch: 86, stamina: 80 }
+  },
+  {
+    id: 'doosan_choi_jigang',
+    name: '최지강',
+    teamId: 'doosan',
+    position: 'RP',
+    age: 25,
+    salary: 2,
+    contractYears: 3,
+    isPitcher: true,
+    overall: 84,
+    traits: ['영건 파이어볼러', '투심 패스트볼', '삼진 본능'],
+    pitcherStats: { stuff: 91, control: 79, breaking: 83, clutch: 83, stamina: 82 }
+  },
+
 
   // ==========================================
   // 5. kt 위즈 (2026)
@@ -773,6 +920,46 @@ export const INITIAL_PLAYERS: Player[] = [
     traits: ['베테랑 키스톤', '안정된 내야 수비'],
     batterStats: { contact: 82, power: 65, eye: 84, speed: 78, defense: 89, stamina: 82 }
   },
+  {
+    id: 'kt_so_hyeongjun',
+    name: '소형준',
+    teamId: 'kt',
+    position: 'SP',
+    age: 25,
+    salary: 7,
+    contractYears: 3,
+    isPitcher: true,
+    overall: 89,
+    traits: ['명품 싱커', '빅게임 피처', '토종 에이스', '땅볼 유도'],
+    pitcherStats: { stuff: 88, control: 91, breaking: 91, clutch: 92, stamina: 89 }
+  },
+  {
+    id: 'kt_park_younghyun',
+    name: '박영현',
+    teamId: 'kt',
+    position: 'CP',
+    age: 23,
+    salary: 6,
+    contractYears: 3,
+    isPitcher: true,
+    overall: 91,
+    traits: ['국대 수호신', '돌직구 클로저', '탈삼진 머신', '세이브왕'],
+    pitcherStats: { stuff: 96, control: 89, breaking: 88, clutch: 93, stamina: 84 }
+  },
+  {
+    id: 'kt_kim_min',
+    name: '김민',
+    teamId: 'kt',
+    position: 'RP',
+    age: 27,
+    salary: 3,
+    contractYears: 2,
+    isPitcher: true,
+    overall: 84,
+    traits: ['153km 광속구', '마당쇠 불펜', '구위형 피처'],
+    pitcherStats: { stuff: 92, control: 78, breaking: 83, clutch: 83, stamina: 84 }
+  },
+
 
   // ==========================================
   // 6. SSG 랜더스 (2026)
@@ -925,6 +1112,59 @@ export const INITIAL_PLAYERS: Player[] = [
     traits: ['차세대 거포 유망주', '홈런 포텐'],
     batterStats: { contact: 79, power: 89, eye: 78, speed: 65, defense: 83, stamina: 85 }
   },
+  {
+    id: 'ssg_kim_gwanghyun',
+    name: '김광현',
+    teamId: 'ssg',
+    position: 'SP',
+    age: 38,
+    salary: 18,
+    contractYears: 1,
+    isPitcher: true,
+    overall: 88,
+    traits: ['랜더스 영원한 에이스', '명품 슬라이더', '빅게임 피처', '왕조 주역'],
+    pitcherStats: { stuff: 87, control: 89, breaking: 93, clutch: 94, stamina: 88 }
+  },
+  {
+    id: 'ssg_jo_byeonghyun',
+    name: '조병현',
+    teamId: 'ssg',
+    position: 'CP',
+    age: 24,
+    salary: 4,
+    contractYears: 3,
+    isPitcher: true,
+    overall: 89,
+    traits: ['랜더스 신수호신', '152km 돌직구', '탈삼진 머신'],
+    pitcherStats: { stuff: 94, control: 87, breaking: 87, clutch: 90, stamina: 83 }
+  },
+  {
+    id: 'ssg_noh_kyungeun',
+    name: '노경은',
+    teamId: 'ssg',
+    position: 'RP',
+    age: 42,
+    salary: 5,
+    contractYears: 1,
+    isPitcher: true,
+    overall: 87,
+    traits: ['회춘의 아이콘', '마당쇠 홀드왕', '철완', '베테랑 노하우'],
+    pitcherStats: { stuff: 86, control: 89, breaking: 88, clutch: 91, stamina: 88 }
+  },
+  {
+    id: 'ssg_seo_jinyong',
+    name: '서진용',
+    teamId: 'ssg',
+    position: 'RP',
+    age: 34,
+    salary: 5,
+    contractYears: 1,
+    isPitcher: true,
+    overall: 83,
+    traits: ['명품 포크볼', '세이브왕 출신', '위기관리'],
+    pitcherStats: { stuff: 85, control: 81, breaking: 88, clutch: 86, stamina: 81 }
+  },
+
 
   // ==========================================
   // 7. 롯데 자이언츠 (2026)
@@ -1077,6 +1317,46 @@ export const INITIAL_PLAYERS: Player[] = [
     traits: ['영원한 캡틴', '해결사 본능', '클럽하우스 리더'],
     batterStats: { contact: 88, power: 84, eye: 87, speed: 55, defense: 50, stamina: 75 }
   },
+  {
+    id: 'lotte_koo_seungmin',
+    name: '구승민',
+    teamId: 'lotte',
+    position: 'RP',
+    age: 36,
+    salary: 5,
+    contractYears: 1,
+    isPitcher: true,
+    overall: 85,
+    traits: ['롯데 통산 100홀드', '명품 포크볼', '탈삼진 셋업'],
+    pitcherStats: { stuff: 89, control: 82, breaking: 89, clutch: 86, stamina: 82 }
+  },
+  {
+    id: 'lotte_kim_jinuk',
+    name: '김진욱',
+    teamId: 'lotte',
+    position: 'SP',
+    age: 24,
+    salary: 3,
+    contractYears: 3,
+    isPitcher: true,
+    overall: 83,
+    traits: ['좌완 탈삼진 영건', '폭포수 커브', '성장 잠재력'],
+    pitcherStats: { stuff: 88, control: 78, breaking: 88, clutch: 81, stamina: 84 }
+  },
+  {
+    id: 'lotte_na_gyunan',
+    name: '나균안',
+    teamId: 'lotte',
+    position: 'SP',
+    age: 28,
+    salary: 4,
+    contractYears: 2,
+    isPitcher: true,
+    overall: 82,
+    traits: ['정밀 제구', '포크볼러', '투수 전향 신화'],
+    pitcherStats: { stuff: 81, control: 86, breaking: 84, clutch: 82, stamina: 86 }
+  },
+
 
   // ==========================================
   // 8. 한화 이글스 (2026)
@@ -1242,6 +1522,46 @@ export const INITIAL_PLAYERS: Player[] = [
     traits: ['160.1km 파이어볼러', '슈퍼 유망주', '국대 선발 에이스'],
     pitcherStats: { stuff: 99, control: 84, breaking: 87, clutch: 86, stamina: 90 }
   },
+  {
+    id: 'hanwha_kim_minwoo',
+    name: '김민우',
+    teamId: 'hanwha',
+    position: 'SP',
+    age: 31,
+    salary: 4,
+    contractYears: 2,
+    isPitcher: true,
+    overall: 83,
+    traits: ['이닝이터', '낙차 큰 포크볼', '선발 로테이션'],
+    pitcherStats: { stuff: 84, control: 82, breaking: 86, clutch: 82, stamina: 88 }
+  },
+  {
+    id: 'hanwha_park_sangwon',
+    name: '박상원',
+    teamId: 'hanwha',
+    position: 'RP',
+    age: 32,
+    salary: 4,
+    contractYears: 2,
+    isPitcher: true,
+    overall: 84,
+    traits: ['파이팅 불펜', '150km 패스트볼', '포크볼 셋업'],
+    pitcherStats: { stuff: 89, control: 81, breaking: 85, clutch: 85, stamina: 82 }
+  },
+  {
+    id: 'hanwha_hwang_junseo',
+    name: '황준서',
+    teamId: 'hanwha',
+    position: 'SP',
+    age: 21,
+    salary: 2,
+    contractYears: 4,
+    isPitcher: true,
+    overall: 83,
+    traits: ['전체 1순위 슈퍼 루키', '좌완 스플리터', '차세대 에이스'],
+    pitcherStats: { stuff: 85, control: 84, breaking: 87, clutch: 82, stamina: 83 }
+  },
+
 
   // ==========================================
   // 9. NC 다이노스 (2026)
@@ -1381,6 +1701,46 @@ export const INITIAL_PLAYERS: Player[] = [
     traits: ['국가대표 안방마님', '강한 어깨', '홈런 타격'],
     batterStats: { contact: 80, power: 88, eye: 83, speed: 55, defense: 91, stamina: 87 }
   },
+  {
+    id: 'nc_shin_minhyuk',
+    name: '신민혁',
+    teamId: 'nc',
+    position: 'SP',
+    age: 27,
+    salary: 5,
+    contractYears: 2,
+    isPitcher: true,
+    overall: 85,
+    traits: ['체인지업 마스터', '빅게임 피처', '토종 선발 기둥'],
+    pitcherStats: { stuff: 82, control: 89, breaking: 91, clutch: 88, stamina: 87 }
+  },
+  {
+    id: 'nc_kim_younggyu',
+    name: '김영규',
+    teamId: 'nc',
+    position: 'RP',
+    age: 26,
+    salary: 4,
+    contractYears: 2,
+    isPitcher: true,
+    overall: 87,
+    traits: ['좌완 필승조', '슬라이더', '국가대표 불펜'],
+    pitcherStats: { stuff: 90, control: 86, breaking: 88, clutch: 89, stamina: 83 }
+  },
+  {
+    id: 'nc_kim_jaeyeol',
+    name: '김재열',
+    teamId: 'nc',
+    position: 'RP',
+    age: 30,
+    salary: 3,
+    contractYears: 2,
+    isPitcher: true,
+    overall: 85,
+    traits: ['슬라이더 불펜 에이스', '탈삼진 머신', '인간승리'],
+    pitcherStats: { stuff: 89, control: 83, breaking: 89, clutch: 86, stamina: 82 }
+  },
+
 
   // ==========================================
   // 10. 키움 히어로즈 (2026)
@@ -1519,5 +1879,58 @@ export const INITIAL_PLAYERS: Player[] = [
     overall: 91,
     traits: ['영웅군단 캡틴', '커리어 하이', '클러치 머신', '해결사'],
     batterStats: { contact: 93, power: 89, eye: 89, speed: 84, defense: 88, stamina: 92 }
-  }
+  },
+  {
+    id: 'kiwoom_ahn_woojin',
+    name: '안우진',
+    teamId: 'kiwoom',
+    position: 'SP',
+    age: 27,
+    salary: 10,
+    contractYears: 3,
+    isPitcher: true,
+    overall: 95,
+    traits: ['KBO 최고 에이스', '160km 괴물 강속구', '탈삼진왕', '미스터 제로'],
+    pitcherStats: { stuff: 99, control: 93, breaking: 96, clutch: 95, stamina: 96 }
+  },
+  {
+    id: 'kiwoom_ha_youngmin',
+    name: '하영민',
+    teamId: 'kiwoom',
+    position: 'SP',
+    age: 31,
+    salary: 4,
+    contractYears: 2,
+    isPitcher: true,
+    overall: 84,
+    traits: ['제구 안정형 선발', '커리어 하이', '포크볼러'],
+    pitcherStats: { stuff: 83, control: 87, breaking: 85, clutch: 84, stamina: 86 }
+  },
+  {
+    id: 'kiwoom_kim_seongi',
+    name: '김선기',
+    teamId: 'kiwoom',
+    position: 'RP',
+    age: 35,
+    salary: 3,
+    contractYears: 1,
+    isPitcher: true,
+    overall: 82,
+    traits: ['전천후 스윙맨', '베테랑 마운드'],
+    pitcherStats: { stuff: 83, control: 83, breaking: 82, clutch: 82, stamina: 84 }
+  },
+  {
+    id: 'kiwoom_moon_seonghyun',
+    name: '문성현',
+    teamId: 'kiwoom',
+    position: 'RP',
+    age: 35,
+    salary: 3,
+    contractYears: 1,
+    isPitcher: true,
+    overall: 81,
+    traits: ['베테랑 슬라이더', '추격조 요원'],
+    pitcherStats: { stuff: 82, control: 81, breaking: 83, clutch: 81, stamina: 80 }
+  },
+
 ]

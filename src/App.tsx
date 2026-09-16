@@ -36,6 +36,7 @@ import { SeasonEventView } from './components/SeasonEventView'
 import { CallupView } from './components/CallupView'
 import { DraftView } from './components/DraftView'
 import { PennantRaceView } from './components/PennantRaceView'
+import { ClutchMatchView } from './components/ClutchMatchView'
 import { PostseasonView } from './components/PostseasonView'
 import { SettlementView } from './components/SettlementView'
 import { EndingView } from './components/EndingView'
@@ -241,11 +242,29 @@ export default function App() {
     setPhase('SECOND_HALF_EVENTS')
   }
 
-  // [Phase 6 -> 7] 후반기 이벤트 완료 -> 144경기 페넌트레이스 시뮬레이션
+  // [Phase 6 -> CLUTCH_MATCH] 후반기 이벤트 완료 -> 9회말 승부처 현장 작전 지휘
   const handleConfirmSecondHalfEvent = (option: EventOption) => {
     applyOptionDeltas(option)
+    setPhase('CLUTCH_MATCH')
+  }
+
+  // [CLUTCH_MATCH -> PENNANT_RACE] 현장 지휘 완료 -> 144경기 페넌트레이스 시뮬레이션
+  const handleFinishClutchMatch = (isVictory: boolean, _outcomeDesc: string) => {
+    let extraModifier = modifierDelta
+    if (isVictory) {
+      extraModifier += 3
+      setModifierDelta(prev => prev + 3)
+      setTeams(prev => ({
+        ...prev,
+        [userTeamId]: {
+          ...prev[userTeamId],
+          chemistry: Math.min(100, prev[userTeamId].chemistry + 8),
+          fanSupport: Math.min(100, prev[userTeamId].fanSupport + 10)
+        }
+      }))
+    }
     const prng = getPrng(888)
-    const res = simulatePennantRace(teams, players, prng, activeEnv, modifierDelta, userTeamId)
+    const res = simulatePennantRace(teams, players, prng, activeEnv, extraModifier, userTeamId)
     setStandings(res)
     setPhase('PENNANT_RACE')
   }
@@ -545,6 +564,17 @@ export default function App() {
                 event={inSeasonEvents[1]}
                 team={userTeam}
                 onConfirmChoice={handleConfirmSecondHalfEvent}
+              />
+            )}
+
+            {/* 7.5. [신규] 9회 승부처 현장 작전 지휘 (대타, 대주자, 번트, 투수교체, 고의사구) */}
+            {phase === 'CLUTCH_MATCH' && (
+              <ClutchMatchView
+                season={season}
+                userTeam={userTeam}
+                players={players}
+                prng={getPrng(777)}
+                onFinishClutchMatch={handleFinishClutchMatch}
               />
             )}
 
