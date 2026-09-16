@@ -116,7 +116,7 @@ export const RosterModal: React.FC<RosterModalProps> = ({
             return (
               <div
                 key={p.id}
-                className="p-3.5 rounded-2xl bg-white hover:bg-neutral-50 dark:bg-[#18181b] dark:hover:bg-[#202024] border border-neutral-200/90 dark:border-white/[0.08] transition-all duration-200 shadow-[0_1px_3px_rgba(0,0,0,0.03)] flex flex-col gap-2"
+                className="p-3 rounded-2xl bg-white hover:bg-neutral-50 dark:bg-[#18181b] dark:hover:bg-[#202024] border border-neutral-200/90 dark:border-white/[0.08] transition-all duration-200 shadow-[0_1px_3px_rgba(0,0,0,0.03)] flex flex-col gap-2"
               >
                 {/* Upper Row: Position, Name, Foreign Badge, Age/Salary, Rating */}
                 <div className="flex items-center justify-between">
@@ -151,75 +151,69 @@ export const RosterModal: React.FC<RosterModalProps> = ({
                   </div>
                 </div>
 
-                {/* Middle Row: Stats Bar */}
-                <div className="grid grid-cols-2 gap-2">
-                  {p.isPitcher && p.pitcherStats ? (
-                    <>
-                      <div className="bg-neutral-50 dark:bg-white/[0.04] p-1.5 px-2 rounded-lg border border-neutral-200/80 dark:border-white/[0.06] flex items-center justify-between text-[11px] font-mono">
-                        <span className="text-neutral-500 dark:text-neutral-400">구위</span>
-                        <div className="flex items-center gap-1.5">
-                          <div className="w-10 h-1.5 rounded-full bg-neutral-200 dark:bg-white/10 overflow-hidden">
+                {/* Body Row: Vertical Stats (Left) + Adjacent Traits (Right) */}
+                <div className="grid grid-cols-12 gap-2.5 items-center">
+                  <div className="col-span-7 flex flex-col gap-1.5 bg-neutral-50 dark:bg-white/[0.03] p-2 rounded-xl border border-neutral-200/80 dark:border-white/[0.06]">
+                    {p.isPitcher && p.pitcherStats ? (
+                      <>
+                        <div className="flex items-center justify-between text-[11px] font-mono">
+                          <span className="text-neutral-600 dark:text-neutral-400 font-semibold w-7">구위</span>
+                          <div className="flex-1 mx-2 h-1.5 rounded-full bg-neutral-200 dark:bg-white/10 overflow-hidden">
                             <div
-                              className="h-full bg-neutral-900 dark:bg-white rounded-full"
+                              className="h-full bg-neutral-900 dark:bg-white rounded-full transition-all duration-300"
                               style={{ width: `${Math.min(100, Math.max(10, p.pitcherStats.stuff))}%` }}
                             />
                           </div>
-                          <span className="font-bold text-neutral-900 dark:text-neutral-100">{p.pitcherStats.stuff}</span>
+                          <span className="font-bold text-neutral-900 dark:text-neutral-100 w-5 text-right">{p.pitcherStats.stuff}</span>
                         </div>
-                      </div>
-                      <div className="bg-neutral-50 dark:bg-white/[0.04] p-1.5 px-2 rounded-lg border border-neutral-200/80 dark:border-white/[0.06] flex items-center justify-between text-[11px] font-mono">
-                        <span className="text-neutral-500 dark:text-neutral-400">제구</span>
-                        <div className="flex items-center gap-1.5">
-                          <div className="w-10 h-1.5 rounded-full bg-neutral-200 dark:bg-white/10 overflow-hidden">
+                        <div className="flex items-center justify-between text-[11px] font-mono">
+                          <span className="text-neutral-600 dark:text-neutral-400 font-semibold w-7">제구</span>
+                          <div className="flex-1 mx-2 h-1.5 rounded-full bg-neutral-200 dark:bg-white/10 overflow-hidden">
                             <div
-                              className="h-full bg-neutral-900 dark:bg-white rounded-full"
+                              className="h-full bg-neutral-900 dark:bg-white rounded-full transition-all duration-300"
                               style={{ width: `${Math.min(100, Math.max(10, p.pitcherStats.control))}%` }}
                             />
                           </div>
-                          <span className="font-bold text-neutral-900 dark:text-neutral-100">{p.pitcherStats.control}</span>
+                          <span className="font-bold text-neutral-900 dark:text-neutral-100 w-5 text-right">{p.pitcherStats.control}</span>
                         </div>
-                      </div>
-                    </>
-                  ) : p.batterStats ? (
-                    <>
-                      <div className="bg-neutral-50 dark:bg-white/[0.04] p-1.5 px-2 rounded-lg border border-neutral-200/80 dark:border-white/[0.06] flex items-center justify-between text-[11px] font-mono">
-                        <span className="text-neutral-500 dark:text-neutral-400">컨택</span>
-                        <div className="flex items-center gap-1.5">
-                          <div className="w-10 h-1.5 rounded-full bg-neutral-200 dark:bg-white/10 overflow-hidden">
+                      </>
+                    ) : p.batterStats ? (
+                      <>
+                        <div className="flex items-center justify-between text-[11px] font-mono">
+                          <span className="text-neutral-600 dark:text-neutral-400 font-semibold w-7">컨택</span>
+                          <div className="flex-1 mx-2 h-1.5 rounded-full bg-neutral-200 dark:bg-white/10 overflow-hidden">
                             <div
-                              className="h-full bg-neutral-900 dark:bg-white rounded-full"
+                              className="h-full bg-neutral-900 dark:bg-white rounded-full transition-all duration-300"
                               style={{ width: `${Math.min(100, Math.max(10, p.batterStats.contact))}%` }}
                             />
                           </div>
-                          <span className="font-bold text-neutral-900 dark:text-neutral-100">{p.batterStats.contact}</span>
+                          <span className="font-bold text-neutral-900 dark:text-neutral-100 w-5 text-right">{p.batterStats.contact}</span>
                         </div>
-                      </div>
-                      <div className="bg-neutral-50 dark:bg-white/[0.04] p-1.5 px-2 rounded-lg border border-neutral-200/80 dark:border-white/[0.06] flex items-center justify-between text-[11px] font-mono">
-                        <span className="text-neutral-500 dark:text-neutral-400">장타</span>
-                        <div className="flex items-center gap-1.5">
-                          <div className="w-10 h-1.5 rounded-full bg-neutral-200 dark:bg-white/10 overflow-hidden">
+                        <div className="flex items-center justify-between text-[11px] font-mono">
+                          <span className="text-neutral-600 dark:text-neutral-400 font-semibold w-7">장타</span>
+                          <div className="flex-1 mx-2 h-1.5 rounded-full bg-neutral-200 dark:bg-white/10 overflow-hidden">
                             <div
-                              className="h-full bg-neutral-900 dark:bg-white rounded-full"
+                              className="h-full bg-neutral-900 dark:bg-white rounded-full transition-all duration-300"
                               style={{ width: `${Math.min(100, Math.max(10, p.batterStats.power))}%` }}
                             />
                           </div>
-                          <span className="font-bold text-neutral-900 dark:text-neutral-100">{p.batterStats.power}</span>
+                          <span className="font-bold text-neutral-900 dark:text-neutral-100 w-5 text-right">{p.batterStats.power}</span>
                         </div>
-                      </div>
-                    </>
-                  ) : null}
-                </div>
+                      </>
+                    ) : null}
+                  </div>
 
-                {/* Bottom Row: Traits */}
-                <div className="flex flex-wrap gap-1 pt-0.5">
-                  {p.traits.map((t, idx) => (
-                    <span
-                      key={idx}
-                      className="text-[10px] px-1.5 py-0.2 rounded-md bg-neutral-100 dark:bg-white/[0.06] text-neutral-600 dark:text-neutral-300 border border-neutral-200/60 dark:border-white/[0.04] font-medium"
-                    >
-                      #{t}
-                    </span>
-                  ))}
+                  <div className="col-span-5 flex flex-wrap gap-1 content-center">
+                    {p.traits.map((t, idx) => (
+                      <span
+                        key={idx}
+                        className="text-[10px] px-1.5 py-0.5 rounded-md bg-neutral-100 dark:bg-white/[0.06] text-neutral-700 dark:text-neutral-300 border border-neutral-200/80 dark:border-white/[0.06] font-medium leading-tight truncate max-w-full"
+                        title={t}
+                      >
+                        #{t}
+                      </span>
+                    ))}
+                  </div>
                 </div>
               </div>
             )

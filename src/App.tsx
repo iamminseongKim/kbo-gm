@@ -240,9 +240,17 @@ export default function App() {
     if (theme === 'light') {
       document.documentElement.classList.add('light')
       document.documentElement.classList.remove('dark')
+      document.body.classList.add('light')
+      document.body.classList.remove('dark')
+      document.body.style.backgroundColor = '#f5f5f7'
+      document.body.style.color = '#111827'
     } else {
       document.documentElement.classList.add('dark')
       document.documentElement.classList.remove('light')
+      document.body.classList.add('dark')
+      document.body.classList.remove('light')
+      document.body.style.backgroundColor = '#000000'
+      document.body.style.color = '#f5f5f5'
     }
   }, [theme])
 

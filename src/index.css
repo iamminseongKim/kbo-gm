@@ -40,60 +40,41 @@
 /* Apple Light Mode Theme Overrides */
 .light {
   background-color: #f5f5f7;
-  color: #1d1d1f;
+  color: #111827;
 }
 
 .light .apple-glass {
-  background: rgba(255, 255, 255, 0.85) !important;
-  border: 1px solid rgba(0, 0, 0, 0.08) !important;
+  background: rgba(255, 255, 255, 0.88);
+  border: 1px solid rgba(0, 0, 0, 0.08);
 }
 
 .light .apple-card {
-  background: #ffffff !important;
-  border: 1px solid rgba(0, 0, 0, 0.08) !important;
-  box-shadow: 0 2px 14px rgba(0, 0, 0, 0.04) !important;
+  background: #ffffff;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  box-shadow: 0 2px 14px rgba(0, 0, 0, 0.04);
 }
 
 .light .apple-card:hover {
-  border-color: rgba(0, 0, 0, 0.18) !important;
+  border-color: rgba(0, 0, 0, 0.18);
 }
 
 .light .apple-button-primary {
-  background-color: #000000 !important;
-  color: #ffffff !important;
+  background-color: #000000;
+  color: #ffffff;
 }
 
 .light .apple-button-primary:hover {
-  background-color: #2c2c2e !important;
+  background-color: #2c2c2e;
 }
 
 .light .apple-button-secondary {
-  background-color: rgba(0, 0, 0, 0.05) !important;
-  color: #1d1d1f !important;
-  border-color: rgba(0, 0, 0, 0.1) !important;
+  background-color: rgba(0, 0, 0, 0.05);
+  color: #111827;
+  border-color: rgba(0, 0, 0, 0.1);
 }
 
 .light .apple-button-secondary:hover {
-  background-color: rgba(0, 0, 0, 0.08) !important;
-}
-
-/* Light mode typography default hierarchy */
-.light h1, .light h2, .light h3, .light h4 {
-  color: #1d1d1f;
-}
-
-/* Fail-safe text contrast rules for Light Mode: ensure dark buttons always have pure white text */
-.light .apple-button-primary,
-.light .apple-button-primary *,
-.light button.bg-black,
-.light button.bg-black *,
-.light button.bg-neutral-900,
-.light button.bg-neutral-900 *,
-.light .bg-black:not(.text-black),
-.light .bg-black:not(.text-black) *,
-.light .bg-neutral-900:not(.text-black),
-.light .bg-neutral-900:not(.text-black) * {
-  color: #ffffff !important;
+  background-color: rgba(0, 0, 0, 0.08);
 }
 
 /* Minimalist scrollbar */

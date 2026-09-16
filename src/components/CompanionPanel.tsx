@@ -58,15 +58,15 @@ export const CompanionPanel: React.FC<CompanionPanelProps> = ({
         key={p.id}
         className="p-3.5 rounded-2xl bg-white hover:bg-neutral-50 dark:bg-[#18181b] dark:hover:bg-[#202024] border border-neutral-200/90 dark:border-white/[0.08] transition-all duration-200 shadow-[0_1px_3px_rgba(0,0,0,0.03)] flex flex-col gap-2.5"
       >
-        {/* Upper Row: Position, Name, Foreign Badge, Age/Salary, Rating */}
+        {/* 상단 행: 포지션 뱃지, 선수명, 외인 태그, 나이/연봉, 티어/오버롤 */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2.5 min-w-0">
-            {/* Position Squircle Badge */}
+            {/* 포지션 스쿼클 */}
             <div className="w-8 h-8 rounded-xl bg-neutral-100 text-neutral-800 dark:bg-white/10 dark:text-neutral-200 flex items-center justify-center font-mono font-bold text-xs shrink-0 border border-neutral-200 dark:border-white/10 shadow-sm">
               {p.position}
             </div>
 
-            {/* Name & Vitals */}
+            {/* 선수명 및 바이탈 */}
             <div className="min-w-0">
               <div className="flex items-center gap-1.5 flex-wrap">
                 <span className="font-bold text-sm text-neutral-900 dark:text-white tracking-tight">
@@ -84,7 +84,7 @@ export const CompanionPanel: React.FC<CompanionPanelProps> = ({
             </div>
           </div>
 
-          {/* Rating Token */}
+          {/* 종합 오버롤 토큰 */}
           <div className="flex items-center gap-1.5 shrink-0">
             <span className={`text-[10px] font-bold font-mono px-1.5 py-0.5 rounded-md ${rating.pill}`}>
               {rating.tier}
@@ -95,16 +95,17 @@ export const CompanionPanel: React.FC<CompanionPanelProps> = ({
           </div>
         </div>
 
-        {/* Middle Row: Key Stats Visualization (구위/제구 or 컨택/장타) */}
-        <div className="grid grid-cols-2 gap-2">
-          {p.isPitcher && p.pitcherStats ? (
-            <>
-              <div className="bg-neutral-50 dark:bg-white/[0.04] p-1.5 px-2.5 rounded-xl border border-neutral-200/80 dark:border-white/[0.06] flex items-center justify-between text-[11px] font-mono shadow-[0_1px_2px_rgba(0,0,0,0.02)]">
-                <span className="text-neutral-500 dark:text-neutral-400 font-medium">구위</span>
-                <div className="flex items-center gap-2">
-                  <div className="w-12 h-1.5 rounded-full bg-neutral-200 dark:bg-white/10 overflow-hidden">
+        {/* 중단/하단: 세로 배치 능력치 바 (좌측) + 고유 특성 칩 (우측) */}
+        <div className="grid grid-cols-12 gap-2.5 items-center">
+          {/* 좌측: 세로로 나란히 배치된 2대 능력치 바 (7 cols) */}
+          <div className="col-span-7 flex flex-col gap-1.5 bg-neutral-50 dark:bg-white/[0.03] p-2 rounded-xl border border-neutral-200/80 dark:border-white/[0.06]">
+            {p.isPitcher && p.pitcherStats ? (
+              <>
+                <div className="flex items-center justify-between text-[11px] font-mono">
+                  <span className="text-neutral-600 dark:text-neutral-400 font-semibold w-7">구위</span>
+                  <div className="flex-1 mx-2 h-1.5 rounded-full bg-neutral-200 dark:bg-white/10 overflow-hidden">
                     <div
-                      className="h-full bg-neutral-900 dark:bg-white rounded-full"
+                      className="h-full bg-neutral-900 dark:bg-white rounded-full transition-all duration-300"
                       style={{ width: `${Math.min(100, Math.max(10, p.pitcherStats.stuff))}%` }}
                     />
                   </div>
@@ -112,13 +113,11 @@ export const CompanionPanel: React.FC<CompanionPanelProps> = ({
                     {p.pitcherStats.stuff}
                   </span>
                 </div>
-              </div>
-              <div className="bg-neutral-50 dark:bg-white/[0.04] p-1.5 px-2.5 rounded-xl border border-neutral-200/80 dark:border-white/[0.06] flex items-center justify-between text-[11px] font-mono shadow-[0_1px_2px_rgba(0,0,0,0.02)]">
-                <span className="text-neutral-500 dark:text-neutral-400 font-medium">제구</span>
-                <div className="flex items-center gap-2">
-                  <div className="w-12 h-1.5 rounded-full bg-neutral-200 dark:bg-white/10 overflow-hidden">
+                <div className="flex items-center justify-between text-[11px] font-mono">
+                  <span className="text-neutral-600 dark:text-neutral-400 font-semibold w-7">제구</span>
+                  <div className="flex-1 mx-2 h-1.5 rounded-full bg-neutral-200 dark:bg-white/10 overflow-hidden">
                     <div
-                      className="h-full bg-neutral-900 dark:bg-white rounded-full"
+                      className="h-full bg-neutral-900 dark:bg-white rounded-full transition-all duration-300"
                       style={{ width: `${Math.min(100, Math.max(10, p.pitcherStats.control))}%` }}
                     />
                   </div>
@@ -126,16 +125,14 @@ export const CompanionPanel: React.FC<CompanionPanelProps> = ({
                     {p.pitcherStats.control}
                   </span>
                 </div>
-              </div>
-            </>
-          ) : p.batterStats ? (
-            <>
-              <div className="bg-neutral-50 dark:bg-white/[0.04] p-1.5 px-2.5 rounded-xl border border-neutral-200/80 dark:border-white/[0.06] flex items-center justify-between text-[11px] font-mono shadow-[0_1px_2px_rgba(0,0,0,0.02)]">
-                <span className="text-neutral-500 dark:text-neutral-400 font-medium">컨택</span>
-                <div className="flex items-center gap-2">
-                  <div className="w-12 h-1.5 rounded-full bg-neutral-200 dark:bg-white/10 overflow-hidden">
+              </>
+            ) : p.batterStats ? (
+              <>
+                <div className="flex items-center justify-between text-[11px] font-mono">
+                  <span className="text-neutral-600 dark:text-neutral-400 font-semibold w-7">컨택</span>
+                  <div className="flex-1 mx-2 h-1.5 rounded-full bg-neutral-200 dark:bg-white/10 overflow-hidden">
                     <div
-                      className="h-full bg-neutral-900 dark:bg-white rounded-full"
+                      className="h-full bg-neutral-900 dark:bg-white rounded-full transition-all duration-300"
                       style={{ width: `${Math.min(100, Math.max(10, p.batterStats.contact))}%` }}
                     />
                   </div>
@@ -143,13 +140,11 @@ export const CompanionPanel: React.FC<CompanionPanelProps> = ({
                     {p.batterStats.contact}
                   </span>
                 </div>
-              </div>
-              <div className="bg-neutral-50 dark:bg-white/[0.04] p-1.5 px-2.5 rounded-xl border border-neutral-200/80 dark:border-white/[0.06] flex items-center justify-between text-[11px] font-mono shadow-[0_1px_2px_rgba(0,0,0,0.02)]">
-                <span className="text-neutral-500 dark:text-neutral-400 font-medium">장타</span>
-                <div className="flex items-center gap-2">
-                  <div className="w-12 h-1.5 rounded-full bg-neutral-200 dark:bg-white/10 overflow-hidden">
+                <div className="flex items-center justify-between text-[11px] font-mono">
+                  <span className="text-neutral-600 dark:text-neutral-400 font-semibold w-7">장타</span>
+                  <div className="flex-1 mx-2 h-1.5 rounded-full bg-neutral-200 dark:bg-white/10 overflow-hidden">
                     <div
-                      className="h-full bg-neutral-900 dark:bg-white rounded-full"
+                      className="h-full bg-neutral-900 dark:bg-white rounded-full transition-all duration-300"
                       style={{ width: `${Math.min(100, Math.max(10, p.batterStats.power))}%` }}
                     />
                   </div>
@@ -157,21 +152,22 @@ export const CompanionPanel: React.FC<CompanionPanelProps> = ({
                     {p.batterStats.power}
                   </span>
                 </div>
-              </div>
-            </>
-          ) : null}
-        </div>
+              </>
+            ) : null}
+          </div>
 
-        {/* Bottom Row: Traits */}
-        <div className="flex flex-wrap gap-1 pt-0.5">
-          {p.traits.map((t, idx) => (
-            <span
-              key={idx}
-              className="text-[10px] px-2 py-0.5 rounded-md bg-neutral-100 dark:bg-white/[0.06] text-neutral-600 dark:text-neutral-300 border border-neutral-200/60 dark:border-white/[0.04] font-medium"
-            >
-              #{t}
-            </span>
-          ))}
+          {/* 우측: 고유 특성 칩들 (5 cols) */}
+          <div className="col-span-5 flex flex-wrap gap-1 content-center">
+            {p.traits.map((t, idx) => (
+              <span
+                key={idx}
+                className="text-[10px] px-2 py-0.5 rounded-md bg-neutral-100 dark:bg-white/[0.06] text-neutral-700 dark:text-neutral-300 border border-neutral-200/80 dark:border-white/[0.06] font-medium leading-tight truncate max-w-full"
+                title={t}
+              >
+                #{t}
+              </span>
+            ))}
+          </div>
         </div>
       </div>
     )
@@ -192,7 +188,7 @@ export const CompanionPanel: React.FC<CompanionPanelProps> = ({
               <p className="text-xs text-neutral-500 dark:text-neutral-400 font-normal">{team.city} · {team.homePark}</p>
             </div>
           </div>
-          <span className="text-[11px] px-2.5 py-1 rounded-full bg-black/[0.04] dark:bg-white/[0.06] text-neutral-700 dark:text-neutral-300 border border-black/[0.06] dark:border-white/10 font-semibold">
+          <span className="text-[11px] px-2.5 py-1 rounded-full bg-neutral-100 dark:bg-white/[0.06] text-neutral-700 dark:text-neutral-300 border border-neutral-200 dark:border-white/10 font-semibold">
             시즌 {season} 진행중
           </span>
         </div>
@@ -256,14 +252,14 @@ export const CompanionPanel: React.FC<CompanionPanelProps> = ({
         </div>
 
         {/* 탭 컨텐츠 */}
-        <div className="flex-1 overflow-y-auto pr-1 space-y-4 text-xs">
+        <div className="flex-1 overflow-y-auto pr-1 space-y-3 text-xs">
           {activeTab === 'roster' ? (
             <>
               {/* 투수진 */}
               <div>
-                <div className="text-[11px] font-bold text-neutral-600 dark:text-neutral-400 uppercase tracking-wider mb-2.5 px-0.5 flex items-center justify-between">
+                <div className="text-[11px] font-bold text-neutral-700 dark:text-neutral-300 uppercase tracking-wider mb-2.5 px-0.5 flex items-center justify-between">
                   <span>투수진 ({pitchers.length}명)</span>
-                  <span className="text-[10px] font-normal text-neutral-400">구위 · 제구 중심</span>
+                  <span className="text-[10px] font-normal text-neutral-500 dark:text-neutral-400">구위 · 제구 중심</span>
                 </div>
                 <div className="space-y-2.5">
                   {pitchers.map(p => renderPlayerCard(p))}
@@ -272,9 +268,9 @@ export const CompanionPanel: React.FC<CompanionPanelProps> = ({
 
               {/* 야수진 */}
               <div className="pt-2">
-                <div className="text-[11px] font-bold text-neutral-600 dark:text-neutral-400 uppercase tracking-wider mb-2.5 px-0.5 flex items-center justify-between">
+                <div className="text-[11px] font-bold text-neutral-700 dark:text-neutral-300 uppercase tracking-wider mb-2.5 px-0.5 flex items-center justify-between">
                   <span>야수진 ({batters.length}명)</span>
-                  <span className="text-[10px] font-normal text-neutral-400">컨택 · 장타 중심</span>
+                  <span className="text-[10px] font-normal text-neutral-500 dark:text-neutral-400">컨택 · 장타 중심</span>
                 </div>
                 <div className="space-y-2.5">
                   {batters.map(p => renderPlayerCard(p))}
@@ -298,7 +294,7 @@ export const CompanionPanel: React.FC<CompanionPanelProps> = ({
                         }`}
                       >
                         <div className="flex items-center gap-2.5">
-                          <span className={`w-5 text-center font-mono text-[11px] ${isUser ? 'text-neutral-300 dark:text-neutral-300' : 'text-neutral-500'}`}>
+                          <span className={`w-5 text-center font-mono text-[11px] ${isUser ? 'text-neutral-300' : 'text-neutral-500'}`}>
                             {st.rank}
                           </span>
                           <span className="font-semibold text-xs">{st.teamName}</span>
@@ -326,7 +322,7 @@ export const CompanionPanel: React.FC<CompanionPanelProps> = ({
               {/* 이전 시즌 성적 히스토리 */}
               {history.length > 0 && (
                 <div className="mt-6 pt-4 border-t border-black/[0.06] dark:border-white/[0.06]">
-                  <div className="text-[11px] font-bold text-neutral-600 dark:text-neutral-400 uppercase tracking-wider mb-2">
+                  <div className="text-[11px] font-bold text-neutral-700 dark:text-neutral-300 uppercase tracking-wider mb-2">
                     지난 시즌 기록
                   </div>
                   <div className="space-y-1">
